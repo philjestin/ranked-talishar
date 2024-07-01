@@ -9,10 +9,10 @@ import (
 
 	"github.com/gin-gonic/gin"
 	_ "github.com/lib/pq"
-	"github.com/philjestin/ranked-talishar/backend/util"
 	"github.com/philjestin/ranked-talishar/controllers"
 	dbCon "github.com/philjestin/ranked-talishar/db/sqlc"
 	"github.com/philjestin/ranked-talishar/routes"
+	"github.com/philjestin/ranked-talishar/util"
 )
 
 var (
