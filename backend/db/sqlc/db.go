@@ -27,17 +27,32 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.createContactStmt, err = db.PrepareContext(ctx, createContact); err != nil {
 		return nil, fmt.Errorf("error preparing query CreateContact: %w", err)
 	}
+	if q.createUserStmt, err = db.PrepareContext(ctx, createUser); err != nil {
+		return nil, fmt.Errorf("error preparing query CreateUser: %w", err)
+	}
 	if q.deleteContactStmt, err = db.PrepareContext(ctx, deleteContact); err != nil {
 		return nil, fmt.Errorf("error preparing query DeleteContact: %w", err)
+	}
+	if q.deleteUserStmt, err = db.PrepareContext(ctx, deleteUser); err != nil {
+		return nil, fmt.Errorf("error preparing query DeleteUser: %w", err)
 	}
 	if q.getContactByIdStmt, err = db.PrepareContext(ctx, getContactById); err != nil {
 		return nil, fmt.Errorf("error preparing query GetContactById: %w", err)
 	}
+	if q.getUserByIdStmt, err = db.PrepareContext(ctx, getUserById); err != nil {
+		return nil, fmt.Errorf("error preparing query GetUserById: %w", err)
+	}
 	if q.listContactsStmt, err = db.PrepareContext(ctx, listContacts); err != nil {
 		return nil, fmt.Errorf("error preparing query ListContacts: %w", err)
 	}
+	if q.listUsersStmt, err = db.PrepareContext(ctx, listUsers); err != nil {
+		return nil, fmt.Errorf("error preparing query ListUsers: %w", err)
+	}
 	if q.updateContactStmt, err = db.PrepareContext(ctx, updateContact); err != nil {
 		return nil, fmt.Errorf("error preparing query UpdateContact: %w", err)
+	}
+	if q.updateUserStmt, err = db.PrepareContext(ctx, updateUser); err != nil {
+		return nil, fmt.Errorf("error preparing query UpdateUser: %w", err)
 	}
 	return &q, nil
 }
@@ -49,9 +64,19 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing createContactStmt: %w", cerr)
 		}
 	}
+	if q.createUserStmt != nil {
+		if cerr := q.createUserStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing createUserStmt: %w", cerr)
+		}
+	}
 	if q.deleteContactStmt != nil {
 		if cerr := q.deleteContactStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing deleteContactStmt: %w", cerr)
+		}
+	}
+	if q.deleteUserStmt != nil {
+		if cerr := q.deleteUserStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing deleteUserStmt: %w", cerr)
 		}
 	}
 	if q.getContactByIdStmt != nil {
@@ -59,14 +84,29 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing getContactByIdStmt: %w", cerr)
 		}
 	}
+	if q.getUserByIdStmt != nil {
+		if cerr := q.getUserByIdStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getUserByIdStmt: %w", cerr)
+		}
+	}
 	if q.listContactsStmt != nil {
 		if cerr := q.listContactsStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing listContactsStmt: %w", cerr)
 		}
 	}
+	if q.listUsersStmt != nil {
+		if cerr := q.listUsersStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing listUsersStmt: %w", cerr)
+		}
+	}
 	if q.updateContactStmt != nil {
 		if cerr := q.updateContactStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing updateContactStmt: %w", cerr)
+		}
+	}
+	if q.updateUserStmt != nil {
+		if cerr := q.updateUserStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing updateUserStmt: %w", cerr)
 		}
 	}
 	return err
@@ -109,10 +149,15 @@ type Queries struct {
 	db                 DBTX
 	tx                 *sql.Tx
 	createContactStmt  *sql.Stmt
+	createUserStmt     *sql.Stmt
 	deleteContactStmt  *sql.Stmt
+	deleteUserStmt     *sql.Stmt
 	getContactByIdStmt *sql.Stmt
+	getUserByIdStmt    *sql.Stmt
 	listContactsStmt   *sql.Stmt
+	listUsersStmt      *sql.Stmt
 	updateContactStmt  *sql.Stmt
+	updateUserStmt     *sql.Stmt
 }
 
 func (q *Queries) WithTx(tx *sql.Tx) *Queries {
@@ -120,9 +165,14 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		db:                 tx,
 		tx:                 tx,
 		createContactStmt:  q.createContactStmt,
+		createUserStmt:     q.createUserStmt,
 		deleteContactStmt:  q.deleteContactStmt,
+		deleteUserStmt:     q.deleteUserStmt,
 		getContactByIdStmt: q.getContactByIdStmt,
+		getUserByIdStmt:    q.getUserByIdStmt,
 		listContactsStmt:   q.listContactsStmt,
+		listUsersStmt:      q.listUsersStmt,
 		updateContactStmt:  q.updateContactStmt,
+		updateUserStmt:     q.updateUserStmt,
 	}
 }

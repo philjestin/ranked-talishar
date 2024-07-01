@@ -22,6 +22,8 @@ var (
 
     ContactController controllers.ContactController
     ContactRoutes     routes.ContactRoutes
+		UserController    controllers.UserController
+		UserRoutes				routes.UserRoutes
 )
 
 func init() {
@@ -44,6 +46,9 @@ func init() {
     ContactController = *controllers.NewContactController(db, ctx)
     ContactRoutes = routes.NewRouteContact(ContactController)
 
+    UserController = *controllers.NewUserController(db, ctx)
+    UserRoutes = routes.NewRouteUser(UserController)
+
     server = gin.Default()
 }
 
@@ -61,6 +66,8 @@ func main() {
     })
 
     ContactRoutes.ContactRoute(router)
+    UserRoutes.UserRoute(router)
+
 
     server.NoRoute(func(ctx *gin.Context) {
         ctx.JSON(http.StatusNotFound, gin.H{"status": "failed", "message": fmt.Sprintf("The specified route %s not found", ctx.Request.URL)})

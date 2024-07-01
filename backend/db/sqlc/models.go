@@ -19,3 +19,11 @@ type Contact struct {
 	CreatedAt   time.Time `json:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at"`
 }
+
+type User struct {
+	UserID    uuid.UUID `json:"user_id"`
+	UserName  string    `json:"user_name"`
+	UserEmail string    `json:"user_email"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+}
