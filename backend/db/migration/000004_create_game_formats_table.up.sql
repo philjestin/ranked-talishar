@@ -1,7 +1,7 @@
 CREATE TABLE "formats"(
   "format_id" UUID NOT NULL DEFAULT (uuid_generate_v4()),
   "format_name" VARCHAR NOT NULL,
-  "format_description" VARCHAR,
+  "format_description" VARCHAR NOT NULL,
   "created_at" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "updated_at" TIMESTAMP NOT NULL,
   CONSTRAINT "formats_pkey" PRIMARY KEY("format_id")
