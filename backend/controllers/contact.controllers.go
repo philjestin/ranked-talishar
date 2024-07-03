@@ -23,7 +23,7 @@ func NewContactController(db *db.Queries, ctx context.Context) *ContactControlle
     return &ContactController{db, ctx}
 }
 
-// Create contact  handler
+// Create contact handler
 func (cc *ContactController) CreateContact(ctx *gin.Context) {
     var payload *schemas.CreateContact
 
@@ -100,7 +100,7 @@ func (cc *ContactController) GetContactById(ctx *gin.Context) {
         return
     }
 
-    ctx.JSON(http.StatusOK, gin.H{"status": "Successfully retrived id", "contact": contact})
+    ctx.JSON(http.StatusOK, gin.H{"status": "Successfully retrieved id", "contact": contact})
 }
 
 // Retrieve all records handlers

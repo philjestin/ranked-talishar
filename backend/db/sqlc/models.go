@@ -20,6 +20,11 @@ type Contact struct {
 	UpdatedAt   time.Time `json:"updated_at"`
 }
 
+type Game struct {
+	GameID   uuid.UUID `json:"game_id"`
+	GameName string    `json:"game_name"`
+}
+
 type User struct {
 	UserID    uuid.UUID `json:"user_id"`
 	UserName  string    `json:"user_name"`

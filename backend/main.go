@@ -22,8 +22,10 @@ var (
 
     ContactController controllers.ContactController
     ContactRoutes     routes.ContactRoutes
-		UserController    controllers.UserController
-		UserRoutes				routes.UserRoutes
+    UserController    controllers.UserController
+    UserRoutes	      routes.UserRoutes
+    GameController    controllers.GameController
+    GameRoutes        routes.GameRoutes
 )
 
 func init() {
@@ -43,11 +45,17 @@ func init() {
 
     fmt.Println("PostgreSql connected successfully...")
 
+    // Contact Controller and Routes
     ContactController = *controllers.NewContactController(db, ctx)
     ContactRoutes = routes.NewRouteContact(ContactController)
 
+    // Users Controller and Routes
     UserController = *controllers.NewUserController(db, ctx)
     UserRoutes = routes.NewRouteUser(UserController)
+
+    // Games Controller and Routes
+    GameController = *controllers.NewGameController(db, ctx)
+    GameRoutes = routes.NewRouteGame(GameController)
 
     server = gin.Default()
 }
@@ -67,6 +75,7 @@ func main() {
 
     ContactRoutes.ContactRoute(router)
     UserRoutes.UserRoute(router)
+    GameRoutes.GameRoute(router)
 
 
     server.NoRoute(func(ctx *gin.Context) {
