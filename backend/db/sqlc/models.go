@@ -5,6 +5,7 @@
 package db
 
 import (
+	"database/sql"
 	"time"
 
 	"github.com/google/uuid"
@@ -31,6 +32,39 @@ type Format struct {
 type Game struct {
 	GameID   uuid.UUID `json:"game_id"`
 	GameName string    `json:"game_name"`
+}
+
+type Hero struct {
+	HeroID    uuid.UUID     `json:"hero_id"`
+	HeroName  string        `json:"hero_name"`
+	FormatID  uuid.NullUUID `json:"format_id"`
+	CreatedAt time.Time     `json:"created_at"`
+	UpdatedAt time.Time     `json:"updated_at"`
+}
+
+type Match struct {
+	MatchID         uuid.UUID      `json:"match_id"`
+	GameID          uuid.NullUUID  `json:"game_id"`
+	MatchName       sql.NullString `json:"match_name"`
+	Player1ID       uuid.NullUUID  `json:"player1_id"`
+	Player2ID       uuid.NullUUID  `json:"player2_id"`
+	WinnerID        uuid.NullUUID  `json:"winner_id"`
+	LoserID         uuid.NullUUID  `json:"loser_id"`
+	Player1Decklist sql.NullString `json:"player1_decklist"`
+	Player2Decklist sql.NullString `json:"player2_decklist"`
+	Player1Hero     uuid.NullUUID  `json:"player1_hero"`
+	Player2Hero     uuid.NullUUID  `json:"player2_hero"`
+	MatchDate       time.Time      `json:"match_date"`
+	FormatID        uuid.NullUUID  `json:"format_id"`
+}
+
+type Ranking struct {
+	RankingID   uuid.UUID     `json:"ranking_id"`
+	UserID      uuid.NullUUID `json:"user_id"`
+	GameID      uuid.NullUUID `json:"game_id"`
+	FormatID    uuid.NullUUID `json:"format_id"`
+	EloScore    sql.NullInt32 `json:"elo_score"`
+	LastUpdated sql.NullTime  `json:"last_updated"`
 }
 
 type User struct {

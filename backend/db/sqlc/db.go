@@ -33,6 +33,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.createGameStmt, err = db.PrepareContext(ctx, createGame); err != nil {
 		return nil, fmt.Errorf("error preparing query CreateGame: %w", err)
 	}
+	if q.createHeroStmt, err = db.PrepareContext(ctx, createHero); err != nil {
+		return nil, fmt.Errorf("error preparing query CreateHero: %w", err)
+	}
 	if q.createUserStmt, err = db.PrepareContext(ctx, createUser); err != nil {
 		return nil, fmt.Errorf("error preparing query CreateUser: %w", err)
 	}
@@ -44,6 +47,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	}
 	if q.deleteGameStmt, err = db.PrepareContext(ctx, deleteGame); err != nil {
 		return nil, fmt.Errorf("error preparing query DeleteGame: %w", err)
+	}
+	if q.deleteHeroStmt, err = db.PrepareContext(ctx, deleteHero); err != nil {
+		return nil, fmt.Errorf("error preparing query DeleteHero: %w", err)
 	}
 	if q.deleteUserStmt, err = db.PrepareContext(ctx, deleteUser); err != nil {
 		return nil, fmt.Errorf("error preparing query DeleteUser: %w", err)
@@ -57,6 +63,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.getGameByIDStmt, err = db.PrepareContext(ctx, getGameByID); err != nil {
 		return nil, fmt.Errorf("error preparing query GetGameByID: %w", err)
 	}
+	if q.getHeroByIdStmt, err = db.PrepareContext(ctx, getHeroById); err != nil {
+		return nil, fmt.Errorf("error preparing query GetHeroById: %w", err)
+	}
 	if q.getUserByIdStmt, err = db.PrepareContext(ctx, getUserById); err != nil {
 		return nil, fmt.Errorf("error preparing query GetUserById: %w", err)
 	}
@@ -69,6 +78,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.listGamesStmt, err = db.PrepareContext(ctx, listGames); err != nil {
 		return nil, fmt.Errorf("error preparing query ListGames: %w", err)
 	}
+	if q.listHeroesStmt, err = db.PrepareContext(ctx, listHeroes); err != nil {
+		return nil, fmt.Errorf("error preparing query ListHeroes: %w", err)
+	}
 	if q.listUsersStmt, err = db.PrepareContext(ctx, listUsers); err != nil {
 		return nil, fmt.Errorf("error preparing query ListUsers: %w", err)
 	}
@@ -80,6 +92,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	}
 	if q.updateGameStmt, err = db.PrepareContext(ctx, updateGame); err != nil {
 		return nil, fmt.Errorf("error preparing query UpdateGame: %w", err)
+	}
+	if q.updateHeroStmt, err = db.PrepareContext(ctx, updateHero); err != nil {
+		return nil, fmt.Errorf("error preparing query UpdateHero: %w", err)
 	}
 	if q.updateUserStmt, err = db.PrepareContext(ctx, updateUser); err != nil {
 		return nil, fmt.Errorf("error preparing query UpdateUser: %w", err)
@@ -104,6 +119,11 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing createGameStmt: %w", cerr)
 		}
 	}
+	if q.createHeroStmt != nil {
+		if cerr := q.createHeroStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing createHeroStmt: %w", cerr)
+		}
+	}
 	if q.createUserStmt != nil {
 		if cerr := q.createUserStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing createUserStmt: %w", cerr)
@@ -122,6 +142,11 @@ func (q *Queries) Close() error {
 	if q.deleteGameStmt != nil {
 		if cerr := q.deleteGameStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing deleteGameStmt: %w", cerr)
+		}
+	}
+	if q.deleteHeroStmt != nil {
+		if cerr := q.deleteHeroStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing deleteHeroStmt: %w", cerr)
 		}
 	}
 	if q.deleteUserStmt != nil {
@@ -144,6 +169,11 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing getGameByIDStmt: %w", cerr)
 		}
 	}
+	if q.getHeroByIdStmt != nil {
+		if cerr := q.getHeroByIdStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getHeroByIdStmt: %w", cerr)
+		}
+	}
 	if q.getUserByIdStmt != nil {
 		if cerr := q.getUserByIdStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing getUserByIdStmt: %w", cerr)
@@ -164,6 +194,11 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing listGamesStmt: %w", cerr)
 		}
 	}
+	if q.listHeroesStmt != nil {
+		if cerr := q.listHeroesStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing listHeroesStmt: %w", cerr)
+		}
+	}
 	if q.listUsersStmt != nil {
 		if cerr := q.listUsersStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing listUsersStmt: %w", cerr)
@@ -182,6 +217,11 @@ func (q *Queries) Close() error {
 	if q.updateGameStmt != nil {
 		if cerr := q.updateGameStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing updateGameStmt: %w", cerr)
+		}
+	}
+	if q.updateHeroStmt != nil {
+		if cerr := q.updateHeroStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing updateHeroStmt: %w", cerr)
 		}
 	}
 	if q.updateUserStmt != nil {
@@ -231,22 +271,27 @@ type Queries struct {
 	createContactStmt  *sql.Stmt
 	createFormatStmt   *sql.Stmt
 	createGameStmt     *sql.Stmt
+	createHeroStmt     *sql.Stmt
 	createUserStmt     *sql.Stmt
 	deleteContactStmt  *sql.Stmt
 	deleteFormatStmt   *sql.Stmt
 	deleteGameStmt     *sql.Stmt
+	deleteHeroStmt     *sql.Stmt
 	deleteUserStmt     *sql.Stmt
 	getContactByIdStmt *sql.Stmt
 	getFormatByIdStmt  *sql.Stmt
 	getGameByIDStmt    *sql.Stmt
+	getHeroByIdStmt    *sql.Stmt
 	getUserByIdStmt    *sql.Stmt
 	listContactsStmt   *sql.Stmt
 	listFormatsStmt    *sql.Stmt
 	listGamesStmt      *sql.Stmt
+	listHeroesStmt     *sql.Stmt
 	listUsersStmt      *sql.Stmt
 	updateContactStmt  *sql.Stmt
 	updateFormatStmt   *sql.Stmt
 	updateGameStmt     *sql.Stmt
+	updateHeroStmt     *sql.Stmt
 	updateUserStmt     *sql.Stmt
 }
 
@@ -257,22 +302,27 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		createContactStmt:  q.createContactStmt,
 		createFormatStmt:   q.createFormatStmt,
 		createGameStmt:     q.createGameStmt,
+		createHeroStmt:     q.createHeroStmt,
 		createUserStmt:     q.createUserStmt,
 		deleteContactStmt:  q.deleteContactStmt,
 		deleteFormatStmt:   q.deleteFormatStmt,
 		deleteGameStmt:     q.deleteGameStmt,
+		deleteHeroStmt:     q.deleteHeroStmt,
 		deleteUserStmt:     q.deleteUserStmt,
 		getContactByIdStmt: q.getContactByIdStmt,
 		getFormatByIdStmt:  q.getFormatByIdStmt,
 		getGameByIDStmt:    q.getGameByIDStmt,
+		getHeroByIdStmt:    q.getHeroByIdStmt,
 		getUserByIdStmt:    q.getUserByIdStmt,
 		listContactsStmt:   q.listContactsStmt,
 		listFormatsStmt:    q.listFormatsStmt,
 		listGamesStmt:      q.listGamesStmt,
+		listHeroesStmt:     q.listHeroesStmt,
 		listUsersStmt:      q.listUsersStmt,
 		updateContactStmt:  q.updateContactStmt,
 		updateFormatStmt:   q.updateFormatStmt,
 		updateGameStmt:     q.updateGameStmt,
+		updateHeroStmt:     q.updateHeroStmt,
 		updateUserStmt:     q.updateUserStmt,
 	}
 }
