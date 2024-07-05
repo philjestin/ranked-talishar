@@ -28,6 +28,8 @@ var (
     GameRoutes        routes.GameRoutes
     FormatController  controllers.FormatController
     FormatRoutes      routes.FormatRoutes
+    HeroController  controllers.HeroController
+    HeroRoutes      routes.HeroRoutes
 )
 
 func init() {
@@ -63,6 +65,10 @@ func init() {
     FormatController = *controllers.NewFormatController(db, ctx)
     FormatRoutes = routes.NewRouteFormat(FormatController)
 
+    // Heroes Controller and Routes
+    HeroController = *controllers.NewHeroController(db, ctx)
+    HeroRoutes = routes.NewRouteHero(HeroController)
+
     server = gin.Default()
 }
 
@@ -83,6 +89,8 @@ func main() {
     UserRoutes.UserRoute(router)
     GameRoutes.GameRoute(router)
     FormatRoutes.FormatRoute(router)
+    HeroRoutes.HeroRoute(router)
+
 
     server.NoRoute(func(ctx *gin.Context) {
         ctx.JSON(http.StatusNotFound, gin.H{"status": "failed", "message": fmt.Sprintf("The specified route %s not found", ctx.Request.URL)})
