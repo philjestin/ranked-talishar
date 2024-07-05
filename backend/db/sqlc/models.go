@@ -56,6 +56,9 @@ type Match struct {
 	Player2Hero     uuid.NullUUID  `json:"player2_hero"`
 	MatchDate       time.Time      `json:"match_date"`
 	FormatID        uuid.NullUUID  `json:"format_id"`
+	CreatedAt       time.Time      `json:"created_at"`
+	UpdatedAt       time.Time      `json:"updated_at"`
+	InProgress      sql.NullBool   `json:"in_progress"`
 }
 
 type Ranking struct {
