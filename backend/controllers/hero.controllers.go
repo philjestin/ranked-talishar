@@ -139,7 +139,7 @@ func (cc *HeroController) GetAllHeroes(ctx *gin.Context) {
 		Offset: int32(offset),
 	}
 
-	heros, err := cc.db.ListHeroes(ctx, *args)
+	heroes, err := cc.db.ListHeroes(ctx, *args)
 	if err != nil {
 			ctx.JSON(http.StatusBadGateway, gin.H{
 				"status": "Failed to retrieve heros",
@@ -148,14 +148,14 @@ func (cc *HeroController) GetAllHeroes(ctx *gin.Context) {
 			return
 	}
 
-	if heros == nil {
-		heros = []db.Hero{}
+	if heroes == nil {
+		heroes = []db.Hero{}
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{
 		"status": "Successfully retrieved all heros",
-		"size": len(heros),
-		"heros": heros,
+		"size": len(heroes),
+		"heroes": heroes,
 	})
 }
 

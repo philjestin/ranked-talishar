@@ -15,6 +15,7 @@ import (
 
 const createMatch = `-- name: CreateMatch :one
 INSERT INTO matches(
+  match_id,
   game_id,
   format_id,
   match_date,
@@ -28,11 +29,12 @@ INSERT INTO matches(
   created_at,
   updated_at
 ) VALUES (
-  $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12
+  $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13
 ) RETURNING match_id, game_id, match_name, player1_id, player2_id, winner_id, loser_id, player1_decklist, player2_decklist, player1_hero, player2_hero, match_date, format_id, created_at, updated_at, in_progress
 `
 
 type CreateMatchParams struct {
+	MatchID         uuid.UUID      `json:"match_id"`
 	GameID          uuid.NullUUID  `json:"game_id"`
 	FormatID        uuid.NullUUID  `json:"format_id"`
 	MatchDate       time.Time      `json:"match_date"`
@@ -49,6 +51,7 @@ type CreateMatchParams struct {
 
 func (q *Queries) CreateMatch(ctx context.Context, arg CreateMatchParams) (Match, error) {
 	row := q.queryRow(ctx, q.createMatchStmt, createMatch,
+		arg.MatchID,
 		arg.GameID,
 		arg.FormatID,
 		arg.MatchDate,
@@ -189,8 +192,10 @@ player2_hero = COALESCE($8, player2_hero),
 updated_at = COALESCE($9, updated_at),
 in_progress = COALESCE($10, in_progress),
 winner_id = COALESCE($11, winner_id),
-loser_id = COALESCE($12, loser_id)
-WHERE match_id = $13
+loser_id = COALESCE($12, loser_id),
+player1_id = COALESCE($13, player1_id),
+player2_id = COALESCE($14, player2_id)
+WHERE match_id = $15
 RETURNING match_id, game_id, match_name, player1_id, player2_id, winner_id, loser_id, player1_decklist, player2_decklist, player1_hero, player2_hero, match_date, format_id, created_at, updated_at, in_progress
 `
 
@@ -207,6 +212,8 @@ type UpdateMatchParams struct {
 	InProgress      sql.NullBool   `json:"in_progress"`
 	WinnerID        uuid.NullUUID  `json:"winner_id"`
 	LoserID         uuid.NullUUID  `json:"loser_id"`
+	Player1ID       uuid.NullUUID  `json:"player1_id"`
+	Player2ID       uuid.NullUUID  `json:"player2_id"`
 	MatchID         uuid.UUID      `json:"match_id"`
 }
 
@@ -224,6 +231,8 @@ func (q *Queries) UpdateMatch(ctx context.Context, arg UpdateMatchParams) (Match
 		arg.InProgress,
 		arg.WinnerID,
 		arg.LoserID,
+		arg.Player1ID,
+		arg.Player2ID,
 		arg.MatchID,
 	)
 	var i Match

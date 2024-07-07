@@ -1,5 +1,6 @@
 -- name: CreateMatch :one
 INSERT INTO matches(
+  match_id,
   game_id,
   format_id,
   match_date,
@@ -13,7 +14,7 @@ INSERT INTO matches(
   created_at,
   updated_at
 ) VALUES (
-  $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12
+  $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13
 ) RETURNING *;
 
 -- name: GetMatchById :one
@@ -40,7 +41,9 @@ player2_hero = COALESCE(sqlc.narg('player2_hero'), player2_hero),
 updated_at = COALESCE(sqlc.narg('updated_at'), updated_at),
 in_progress = COALESCE(sqlc.narg('in_progress'), in_progress),
 winner_id = COALESCE(sqlc.narg('winner_id'), winner_id),
-loser_id = COALESCE(sqlc.narg('loser_id'), loser_id)
+loser_id = COALESCE(sqlc.narg('loser_id'), loser_id),
+player1_id = COALESCE(sqlc.narg('player1_id'), player1_id),
+player2_id = COALESCE(sqlc.narg('player2_id'), player2_id)
 WHERE match_id = sqlc.arg('match_id')
 RETURNING *;
 
