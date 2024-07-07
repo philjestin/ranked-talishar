@@ -1,0 +1,48 @@
+# Build artifacts
+*.out
+*.o
+*.a
+*.so
+
+# Dependency folders
+node_modules/
+
+# Temp files
+tmp/
+
+# Go specific
+# Ignore vendor directory for vendored dependencies (optional)
+vendor/
+
+# TypeScript specific
+# Ignore compiled Javascript files
+*.js
+
+# IDE/Editor specific (adjust based on your IDE)
+.vscode/
+.idea/
+
+# OS specific temporary files
+.DS_Store
+Thumbs.db
+
+# Testing frameworks (adjust based on your needs)
+# Edit or remove these lines if you use different frameworks
+__pycache__/
+coverage/
+
+# Local env files
+.env
+
+# Logs
+*.log
+
+# IDE build output (adjust based on your IDE)
+build/
+
+# Ignore all test files ending with .test.ts or .spec.ts
+*.test.ts
+*.spec.ts
+
+# Ignore all markdown documentation files
+*.md
