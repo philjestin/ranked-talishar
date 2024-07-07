@@ -1,0 +1,1 @@
+DELETE FROM formats where format_name in ('Classic Constructed', 'Blitz', 'Draft');
