@@ -50,3 +50,6 @@ RETURNING *;
 -- name: DeleteMatch :exec
 DELETE FROM matches
 WHERE match_id = $1;
+
+-- name: GetMatchPlayers :many
+SELECT winner_id, loser_id FROM matches where match_id = sqlc.arg('match_id');

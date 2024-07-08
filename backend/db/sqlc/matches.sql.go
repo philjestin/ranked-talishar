@@ -126,6 +126,38 @@ func (q *Queries) GetMatchById(ctx context.Context, matchID uuid.UUID) (Match, e
 	return i, err
 }
 
+const getMatchPlayers = `-- name: GetMatchPlayers :many
+SELECT winner_id, loser_id FROM matches where match_id = $1
+`
+
+type GetMatchPlayersRow struct {
+	WinnerID uuid.NullUUID `json:"winner_id"`
+	LoserID  uuid.NullUUID `json:"loser_id"`
+}
+
+func (q *Queries) GetMatchPlayers(ctx context.Context, matchID uuid.UUID) ([]GetMatchPlayersRow, error) {
+	rows, err := q.query(ctx, q.getMatchPlayersStmt, getMatchPlayers, matchID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []GetMatchPlayersRow{}
+	for rows.Next() {
+		var i GetMatchPlayersRow
+		if err := rows.Scan(&i.WinnerID, &i.LoserID); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listMatches = `-- name: ListMatches :many
 SELECT match_id, game_id, match_name, player1_id, player2_id, winner_id, loser_id, player1_decklist, player2_decklist, player1_hero, player2_hero, match_date, format_id, created_at, updated_at, in_progress FROM matches
 ORDER BY match_id

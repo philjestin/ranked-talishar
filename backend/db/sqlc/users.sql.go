@@ -21,7 +21,7 @@ INSERT INTO users(
     updated_at
 ) VALUES (
     $1, $2, $3, $4
-) RETURNING user_id, user_name, user_email, created_at, updated_at
+) RETURNING user_id, user_name, user_email, created_at, updated_at, wins, losses, ties, elo
 `
 
 type CreateUserParams struct {
@@ -45,6 +45,10 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		&i.UserEmail,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.Wins,
+		&i.Losses,
+		&i.Ties,
+		&i.Elo,
 	)
 	return i, err
 }
@@ -60,7 +64,7 @@ func (q *Queries) DeleteUser(ctx context.Context, userID uuid.UUID) error {
 }
 
 const getUserById = `-- name: GetUserById :one
-SELECT user_id, user_name, user_email, created_at, updated_at FROM users
+SELECT user_id, user_name, user_email, created_at, updated_at, wins, losses, ties, elo FROM users
 WHERE user_id = $1 LIMIT 1
 `
 
@@ -73,12 +77,16 @@ func (q *Queries) GetUserById(ctx context.Context, userID uuid.UUID) (User, erro
 		&i.UserEmail,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.Wins,
+		&i.Losses,
+		&i.Ties,
+		&i.Elo,
 	)
 	return i, err
 }
 
 const listUsers = `-- name: ListUsers :many
-SELECT user_id, user_name, user_email, created_at, updated_at FROM users
+SELECT user_id, user_name, user_email, created_at, updated_at, wins, losses, ties, elo FROM users
 ORDER BY user_id
 LIMIT $1
 OFFSET $2
@@ -104,6 +112,10 @@ func (q *Queries) ListUsers(ctx context.Context, arg ListUsersParams) ([]User, e
 			&i.UserEmail,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.Wins,
+			&i.Losses,
+			&i.Ties,
+			&i.Elo,
 		); err != nil {
 			return nil, err
 		}
@@ -118,6 +130,23 @@ func (q *Queries) ListUsers(ctx context.Context, arg ListUsersParams) ([]User, e
 	return items, nil
 }
 
+const updatePlayerRating = `-- name: UpdatePlayerRating :exec
+UPDATE users
+SET
+elo = COALESCE($1, elo)
+where user_id = $2
+`
+
+type UpdatePlayerRatingParams struct {
+	Elo    sql.NullInt32 `json:"elo"`
+	UserID uuid.NullUUID `json:"user_id"`
+}
+
+func (q *Queries) UpdatePlayerRating(ctx context.Context, arg UpdatePlayerRatingParams) error {
+	_, err := q.exec(ctx, q.updatePlayerRatingStmt, updatePlayerRating, arg.Elo, arg.UserID)
+	return err
+}
+
 const updateUser = `-- name: UpdateUser :one
 UPDATE users
 SET
@@ -125,7 +154,7 @@ user_name = coalesce($1, user_name),
 user_email = coalesce($2, user_email),
 updated_at = coalesce($3, updated_at)
 WHERE user_id = $4
-RETURNING user_id, user_name, user_email, created_at, updated_at
+RETURNING user_id, user_name, user_email, created_at, updated_at, wins, losses, ties, elo
 `
 
 type UpdateUserParams struct {
@@ -149,6 +178,10 @@ func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, e
 		&i.UserEmail,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.Wins,
+		&i.Losses,
+		&i.Ties,
+		&i.Elo,
 	)
 	return i, err
 }

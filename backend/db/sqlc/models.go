@@ -76,4 +76,8 @@ type User struct {
 	UserEmail string    `json:"user_email"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
+	Wins      int32     `json:"wins"`
+	Losses    int32     `json:"losses"`
+	Ties      int32     `json:"ties"`
+	Elo       int32     `json:"elo"`
 }

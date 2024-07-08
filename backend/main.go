@@ -11,96 +11,110 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/philjestin/ranked-talishar/controllers"
 	dbCon "github.com/philjestin/ranked-talishar/db/sqlc"
+	"github.com/philjestin/ranked-talishar/listener"
 	"github.com/philjestin/ranked-talishar/routes"
 	"github.com/philjestin/ranked-talishar/util"
 )
 
 var (
-    server *gin.Engine
-    db     *dbCon.Queries
-    ctx    context.Context
+	server *gin.Engine
+	db     *dbCon.Queries
 
-    ContactController controllers.ContactController
-    ContactRoutes     routes.ContactRoutes
-    UserController    controllers.UserController
-    UserRoutes	      routes.UserRoutes
-    GameController    controllers.GameController
-    GameRoutes        routes.GameRoutes
-    FormatController  controllers.FormatController
-    FormatRoutes      routes.FormatRoutes
-    HeroController  controllers.HeroController
-    HeroRoutes      routes.HeroRoutes
-    MatchController  controllers.MatchController
-    MatchRoutes      routes.MatchRoutes
+	ContactController controllers.ContactController
+	ContactRoutes     routes.ContactRoutes
+	UserController    controllers.UserController
+	UserRoutes        routes.UserRoutes
+	GameController    controllers.GameController
+	GameRoutes        routes.GameRoutes
+	FormatController  controllers.FormatController
+	FormatRoutes      routes.FormatRoutes
+	HeroController    controllers.HeroController
+	HeroRoutes        routes.HeroRoutes
+	MatchController   controllers.MatchController
+	MatchRoutes       routes.MatchRoutes
 )
 
 func init() {
-    ctx = context.TODO()
-    config, err := util.LoadConfig(".")
+	// Load the configuration
+	config, err := util.LoadConfig(".")
+	if err != nil {
+		log.Fatalf("could not load config: %v", err)
+	}
 
-    if err != nil {
-        log.Fatalf("could not loadconfig: %v", err)
-    }
+	// Open the database connection
+	conn, err := sql.Open(config.DbDriver, config.DbSource)
+	if err != nil {
+		log.Fatalf("Could not connect to database: %v", err)
+	}
 
-    conn, err := sql.Open(config.DbDriver, config.DbSource)
-    if err != nil {
-        log.Fatalf("Could not connect to database: %v", err)
-    }
+	// Initialize the Queries object
+	db = dbCon.New(conn)
 
-    db = dbCon.New(conn)
+	fmt.Println("PostgreSql connected successfully...")
 
-    fmt.Println("PostgreSql connected successfully...")
+	// Initialize controllers and routes
+	ContactController = *controllers.NewContactController(db, context.Background())
+	ContactRoutes = routes.NewRouteContact(ContactController)
 
-    // Contact Controller and Routes
-    ContactController = *controllers.NewContactController(db, ctx)
-    ContactRoutes = routes.NewRouteContact(ContactController)
+	UserController = *controllers.NewUserController(db, context.Background())
+	UserRoutes = routes.NewRouteUser(UserController)
 
-    // Users Controller and Routes
-    UserController = *controllers.NewUserController(db, ctx)
-    UserRoutes = routes.NewRouteUser(UserController)
+	GameController = *controllers.NewGameController(db, context.Background())
+	GameRoutes = routes.NewRouteGame(GameController)
 
-    // Games Controller and Routes
-    GameController = *controllers.NewGameController(db, ctx)
-    GameRoutes = routes.NewRouteGame(GameController)
+	FormatController = *controllers.NewFormatController(db, context.Background())
+	FormatRoutes = routes.NewRouteFormat(FormatController)
 
-    // Formats Controller and Routes
-    FormatController = *controllers.NewFormatController(db, ctx)
-    FormatRoutes = routes.NewRouteFormat(FormatController)
+	HeroController = *controllers.NewHeroController(db, context.Background())
+	HeroRoutes = routes.NewRouteHero(HeroController)
 
-    // Heroes Controller and Routes
-    HeroController = *controllers.NewHeroController(db, ctx)
-    HeroRoutes = routes.NewRouteHero(HeroController)
+	MatchController = *controllers.NewMatchController(db, context.Background())
+	MatchRoutes = routes.NewRouteMatch(MatchController)
 
-    // Match Controller and Routes
-    MatchController = *controllers.NewMatchController(db, ctx)
-    MatchRoutes = routes.NewRouteMatch(MatchController)
-
-    server = gin.Default()
+	// Initialize the Gin server
+	server = gin.Default()
 }
 
 func main() {
-    config, err := util.LoadConfig(".")
+	// Use the configuration loaded in init
+	config, err := util.LoadConfig(".")
+	if err != nil {
+		log.Fatalf("failed to load config: %v", err)
+	}
 
-    if err != nil {
-        log.Fatalf("failed to load config: %v", err)
-    }
+	// Create context for cancellation
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel() // Ensure cancellation on exit
 
-    router := server.Group("/api")
+	// Start notification listener in a separate goroutine
+	go func() {
+		listenerErr := listener.ListenNotifications(ctx, config.DbSource, "update_ratings_channel", db)
+		if listenerErr != nil {
+			log.Fatal(listenerErr)
+		}
+	}()
 
-    router.GET("/healthcheck", func(ctx *gin.Context) {
-        ctx.JSON(http.StatusOK, gin.H{"message": "The contact APi is working fine"})
-    })
+	// Set up the router group
+	router := server.Group("/api")
 
-    ContactRoutes.ContactRoute(router)
-    UserRoutes.UserRoute(router)
-    GameRoutes.GameRoute(router)
-    FormatRoutes.FormatRoute(router)
-    HeroRoutes.HeroRoute(router)
-    MatchRoutes.MatchRoute(router)
+	// Health check endpoint
+	router.GET("/healthcheck", func(ctx *gin.Context) {
+		ctx.JSON(http.StatusOK, gin.H{"message": "The contact API is working fine"})
+	})
 
-    server.NoRoute(func(ctx *gin.Context) {
-        ctx.JSON(http.StatusNotFound, gin.H{"status": "failed", "message": fmt.Sprintf("The specified route %s not found", ctx.Request.URL)})
-    })
+	// Register routes
+	ContactRoutes.ContactRoute(router)
+	UserRoutes.UserRoute(router)
+	GameRoutes.GameRoute(router)
+	FormatRoutes.FormatRoute(router)
+	HeroRoutes.HeroRoute(router)
+	MatchRoutes.MatchRoute(router)
 
-    log.Fatal(server.Run(":" + config.ServerAddress))
+	// Handle 404 for undefined routes
+	server.NoRoute(func(ctx *gin.Context) {
+		ctx.JSON(http.StatusNotFound, gin.H{"status": "failed", "message": fmt.Sprintf("The specified route %s not found", ctx.Request.URL)})
+	})
+
+	// Start the server
+	log.Fatal(server.Run(":" + config.ServerAddress))
 }

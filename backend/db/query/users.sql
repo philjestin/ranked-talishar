@@ -30,3 +30,9 @@ RETURNING *;
 -- name: DeleteUser :exec
 DELETE FROM users
 WHERE user_id = $1;
+
+-- name: UpdatePlayerRating :exec
+UPDATE users
+SET
+elo = COALESCE(sqlc.narg('elo'), elo)
+where user_id = sqlc.narg('user_id');

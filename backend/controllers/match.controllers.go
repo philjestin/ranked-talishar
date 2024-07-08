@@ -3,6 +3,7 @@ package controllers
 import (
 	"context"
 	"database/sql"
+	"log"
 	"net/http"
 	"strconv"
 	"time"
@@ -12,6 +13,7 @@ import (
 	"github.com/philjestin/ranked-talishar/schemas"
 
 	"github.com/gin-gonic/gin"
+	"github.com/philjestin/ranked-talishar/util"
 )
 
 type MatchController struct {
@@ -26,7 +28,6 @@ func NewMatchController(db *db.Queries, ctx context.Context) *MatchController {
 // Create match handler
 func (cc *MatchController) CreateMatch(ctx *gin.Context) {
 	var payload *schemas.CreateMatch
-	matchId := ctx.Param("matchId")
 
 	if err := ctx.ShouldBindJSON(&payload); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
@@ -38,7 +39,6 @@ func (cc *MatchController) CreateMatch(ctx *gin.Context) {
 
 	now := time.Now()
 	args := &db.CreateMatchParams{
-		MatchID: uuid.MustParse(matchId),
 		MatchName: sql.NullString{String: payload.MatchName, Valid: payload.MatchName != ""},
 		// Handle FormatID
 		FormatID: func() uuid.NullUUID {
@@ -87,6 +87,7 @@ func (cc *MatchController) CreateMatch(ctx *gin.Context) {
 
 // Update Match handler
 func (cc *MatchController) UpdateMatch(ctx *gin.Context) {
+	log.Println("Inside of the Match controller")
 	var payload *schemas.UpdateMatch
 	matchId := ctx.Param("matchId")
 
@@ -141,8 +142,8 @@ func (cc *MatchController) UpdateMatch(ctx *gin.Context) {
 			return uuid.NullUUID{Valid: false}
 		}(),
 
-		Player2Decklist: sql.NullString{String: payload.MatchName, Valid: payload.MatchName != ""},
-		Player1Decklist:sql.NullString{String: payload.MatchName, Valid: payload.MatchName != ""},
+		Player2Decklist: sql.NullString{String: payload.Player2Decklist, Valid: payload.Player2Decklist != ""},
+		Player1Decklist:sql.NullString{String: payload.Player1Decklist, Valid: payload.Player1Decklist != ""},
 		InProgress:      sql.NullBool{Valid: true, Bool: payload.InProgress},
 
 		WinnerID: func() uuid.NullUUID {
@@ -161,6 +162,21 @@ func (cc *MatchController) UpdateMatch(ctx *gin.Context) {
 	}
 
 	match, err := cc.db.UpdateMatch(ctx, *args)
+
+	  // Check if loser_id or winner_id has changed
+  hasWinnerIDChanged := match.WinnerID.Valid
+  hasLoserIDChanged := match.LoserID.Valid
+
+	  // Send notification only if winner and loser ID has changed
+  if hasWinnerIDChanged && hasLoserIDChanged {
+		log.Println("winnerId and loserId have changed")
+    err := util.SendMatchUpdateNotification(ctx, cc.db, match.MatchID)
+    if err != nil {
+      log.Printf("Error sending notification for match update: %v\n", err)
+      // Handle error based on your needs
+    }
+  }
+
 
 	if err != nil {
 		if err == sql.ErrNoRows {

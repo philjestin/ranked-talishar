@@ -8,10 +8,9 @@ import (
 )
 
 type CreateMatch struct {
-		MatchID 				uuid.UUID `json:"match_id" binding:"required"`
     GameID          uuid.UUID `json:"game_id" binding:"required"`
     FormatID        uuid.UUID `json:"format_id" binding:"required"`
-    MatchDate       time.Time `json:"match_date" binding:"required"`
+    MatchDate       time.Time `json:"match_date"`
     MatchName       string    `json:"match_name" binding:"required"`
     Player1ID       uuid.UUID `json:"player1_id" binding:"required"`
     Player2ID       uuid.UUID `json:"player2_id"`
@@ -19,8 +18,8 @@ type CreateMatch struct {
     Player2Decklist string    `json:"player2_decklist"`
     Player1Hero     uuid.UUID `json:"player1_hero" binding:"required"`
     Player2Hero     uuid.UUID `json:"player2_hero"`
-    CreatedAt       time.Time `json:"created_at" binding:"required"`
-    UpdatedAt       time.Time `json:"updated_at" binding:"required"`
+    CreatedAt       time.Time `json:"created_at"`
+    UpdatedAt       time.Time `json:"updated_at"`
 }
 
 type UpdateMatch struct {
@@ -34,7 +33,6 @@ type UpdateMatch struct {
     Player2Hero     uuid.UUID    `json:"player2_hero"`
     UpdatedAt       sql.NullTime `json:"updated_at"`
     InProgress      bool         `json:"in_progress"`
-    MatchID         uuid.UUID    `json:"match_id"`
 		WinnerID				uuid.UUID		 `json:"winner_id"`
 		LoserID					uuid.UUID		 `json:"loser_id"`
 		Player1ID       uuid.UUID `json:"player1_id"`

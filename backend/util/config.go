@@ -1,6 +1,16 @@
 package util
 
-import "github.com/spf13/viper"
+import (
+	"context"
+	"database/sql"
+	"encoding/json"
+	"fmt"
+	"log"
+
+	"github.com/google/uuid"
+	db "github.com/philjestin/ranked-talishar/db/sqlc"
+	"github.com/spf13/viper"
+)
 
 type Config struct {
     DbDriver         string `mapstructure:"DB_DRIVER"`
@@ -25,4 +35,66 @@ func LoadConfig(path string) (config Config, err error) {
 
     err = viper.Unmarshal(&config)
     return
+}
+
+// SendMatchUpdateNotification sends a notification for a match update
+func SendMatchUpdateNotification(ctx context.Context, db *db.Queries, matchID uuid.UUID) error {
+    log.Println("Sending Match Update Notification")
+
+    // Load configuration
+    config, err := LoadConfig("..")
+    if err != nil {
+    return fmt.Errorf("error loading configuration: %w", err)
+    }
+
+    dbUser := config.PostgresUser
+    dbPassword := config.PostgresPassword
+    dbName := config.PostgresDb
+
+    payload := NotificationPayload{
+        MatchID: matchID,
+    }
+
+    log.Println("The payload in the SendMatchUpdateNotification is %s", payload)
+
+    connString := fmt.Sprintf("user=%s password=%s dbname=%s sslmode=disable", dbUser, dbPassword, dbName)
+
+    return SendNotification(ctx, connString, "update_ratings_channel", payload)
+}
+
+// NotificationPayload represents the data structure of your notification message
+type NotificationPayload struct {
+  // Add fields for your notification data here (e.g., matchID, winnerID, loserID)
+  MatchID uuid.UUID `json:"match_id"`
+}
+
+
+func SendNotification(ctx context.Context, connString string, channel string, payload interface{}) error {
+    db, err := sql.Open("postgres", connString)
+    if err != nil {
+        return fmt.Errorf("failed to open connection: %w", err)
+    }
+    defer db.Close()
+
+    // Convert payload to JSON bytes
+    payloadBytes, err := json.Marshal(payload)
+    if err != nil {
+        return fmt.Errorf("failed to marshal payload: %w", err)
+    }
+
+    log.Println("The payloadBytes in the SendNotification func is %s", string(payloadBytes))
+
+    notificationString := fmt.Sprintf("NOTIFY %s, $1", channel)
+
+    log.Println("The notification string is ", notificationString)
+
+
+    // Send notification using pq.Notify
+    _, err = db.ExecContext(ctx, notificationString, string(payloadBytes))
+    if err != nil {
+        return fmt.Errorf("failed to send notification: %w", err)
+    }
+
+    log.Printf("Sent notification on channel: %s with payload: %s\n", channel, string(payloadBytes))
+    return nil
 }
