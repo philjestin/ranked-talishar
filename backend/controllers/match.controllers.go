@@ -169,8 +169,7 @@ func (cc *MatchController) UpdateMatch(ctx *gin.Context) {
 
 	  // Send notification only if winner and loser ID has changed
   if hasWinnerIDChanged && hasLoserIDChanged {
-		log.Println("winnerId and loserId have changed")
-    err := util.SendMatchUpdateNotification(ctx, cc.db, match.MatchID)
+    err := util.SendMatchUpdateNotification(ctx, cc.db, match.MatchID, payload.WinnerID, payload.LoserID)
     if err != nil {
       log.Printf("Error sending notification for match update: %v\n", err)
       // Handle error based on your needs

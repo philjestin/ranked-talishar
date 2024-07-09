@@ -85,6 +85,40 @@ func (q *Queries) GetUserById(ctx context.Context, userID uuid.UUID) (User, erro
 	return i, err
 }
 
+const incrementLosses = `-- name: IncrementLosses :exec
+UPDATE users
+SET
+ losses = coalesce($1, losses + 1)
+WHERE user_id = $2
+`
+
+type IncrementLossesParams struct {
+	Losses sql.NullInt32 `json:"losses"`
+	UserID uuid.UUID     `json:"user_id"`
+}
+
+func (q *Queries) IncrementLosses(ctx context.Context, arg IncrementLossesParams) error {
+	_, err := q.exec(ctx, q.incrementLossesStmt, incrementLosses, arg.Losses, arg.UserID)
+	return err
+}
+
+const incrementWins = `-- name: IncrementWins :exec
+UPDATE users
+SET
+wins = coalesce($1, wins + 1)
+WHERE user_id = $2
+`
+
+type IncrementWinsParams struct {
+	Wins   sql.NullInt32 `json:"wins"`
+	UserID uuid.UUID     `json:"user_id"`
+}
+
+func (q *Queries) IncrementWins(ctx context.Context, arg IncrementWinsParams) error {
+	_, err := q.exec(ctx, q.incrementWinsStmt, incrementWins, arg.Wins, arg.UserID)
+	return err
+}
+
 const listUsers = `-- name: ListUsers :many
 SELECT user_id, user_name, user_email, created_at, updated_at, wins, losses, ties, elo FROM users
 ORDER BY user_id

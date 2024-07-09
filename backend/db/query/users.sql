@@ -36,3 +36,15 @@ UPDATE users
 SET
 elo = COALESCE(sqlc.narg('elo'), elo)
 where user_id = sqlc.narg('user_id');
+
+-- name: IncrementWins :exec
+UPDATE users
+SET
+wins = coalesce(sqlc.narg('wins'), wins + 1)
+WHERE user_id = sqlc.arg('user_id');
+
+-- name: IncrementLosses :exec
+UPDATE users
+SET
+ losses = coalesce(sqlc.narg('losses'), losses + 1)
+WHERE user_id = sqlc.arg('user_id');

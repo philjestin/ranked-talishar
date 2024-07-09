@@ -10,6 +10,7 @@ import (
 	"github.com/lib/pq"
 	db "github.com/philjestin/ranked-talishar/db/sqlc"
 	"github.com/philjestin/ranked-talishar/elo"
+	"github.com/philjestin/ranked-talishar/player"
 
 	_ "github.com/lib/pq" // Assuming you're using PostgreSQL
 )
@@ -17,6 +18,8 @@ import (
 // NotificationPayload represents the data structure of your notification message
 type NotificationPayload struct {
 	MatchID uuid.UUID `json:"match_id"`
+	WinnerID uuid.UUID `json:"winner_id"`
+	LoserID uuid.UUID `json:"loser_id"`
 }
 
 func ListenNotifications(ctx context.Context, connString string, channel string, q *db.Queries) error {
@@ -48,15 +51,16 @@ func ListenNotifications(ctx context.Context, connString string, channel string,
 				log.Printf("Error unmarshalling notification payload: %v\n", err)
 				continue
 			}
+			log.Println("payload %s", payload)
 
 			// Trigger ELO update based on match ID
-			go handleMatchCompletion(payload.MatchID, q)
+			go handleMatchCompletion(payload.MatchID, payload.WinnerID, payload.LoserID, q)
 		}
 	}
 }
 
 // handleMatchCompletion retrieves player information and updates ratings based on match ID
-func handleMatchCompletion(matchID uuid.UUID, q *db.Queries) {
+func handleMatchCompletion(matchID uuid.UUID, winnerId uuid.UUID, loserId uuid.UUID, q *db.Queries) {
 	// Update player ratings based on match ID
 	err := updateMatchRatingsFromID(q, matchID)
 	if err != nil {
@@ -64,7 +68,14 @@ func handleMatchCompletion(matchID uuid.UUID, q *db.Queries) {
 		return
 	}
 
-	log.Printf("Successfully updated ratings for match %d\n", matchID)
+	updateErr := updateMatchPlayersWinLossRatios(q, winnerId, loserId)
+
+	if updateErr != nil {
+		log.Printf("Error updating win loss rations for match %d: %v\n", matchID, updateErr)
+		return
+	}
+
+	log.Printf("Successfully updated ratings and win losses for match %d\n", matchID)
 }
 
 // updateMatchRatingsFromID retrieves winner and loser IDs and updates their ratings
@@ -76,12 +87,24 @@ func updateMatchRatingsFromID(q *db.Queries, matchID uuid.UUID) error {
 	}
 
 	// Update player ratings
-	err = elo.UpdateRatings(context.Background(), q, winnerID, loserID, 1.0)
+	err = elo.UpdateRatings(context.Background(), q, winnerID, loserID)
 	if err != nil {
 		return err
 	}
 
 	return nil
+}
+
+func updateMatchPlayersWinLossRatios(q *db.Queries, winnerId uuid.UUID, loserId uuid.UUID) error {
+	// Update players win and loss columns
+	err := player.UpdatePlayersWinLossColumns(context.Background(), q, winnerId, loserId)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+
 }
 
 // getPlayersFromMatch retrieves winner and loser IDs based on match ID
@@ -103,5 +126,6 @@ func getPlayersFromMatch(q *db.Queries, matchID uuid.UUID) (uuid.UUID, uuid.UUID
 		return uuid.Nil, uuid.Nil, err
 	}
 
+	log.Printf("winner_id %s loser_id %s inside of getPlayersFromMatch", winnerID, loserID)
 	return winnerID, loserID, nil
 }

@@ -81,6 +81,12 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.getUserByIdStmt, err = db.PrepareContext(ctx, getUserById); err != nil {
 		return nil, fmt.Errorf("error preparing query GetUserById: %w", err)
 	}
+	if q.incrementLossesStmt, err = db.PrepareContext(ctx, incrementLosses); err != nil {
+		return nil, fmt.Errorf("error preparing query IncrementLosses: %w", err)
+	}
+	if q.incrementWinsStmt, err = db.PrepareContext(ctx, incrementWins); err != nil {
+		return nil, fmt.Errorf("error preparing query IncrementWins: %w", err)
+	}
 	if q.listContactsStmt, err = db.PrepareContext(ctx, listContacts); err != nil {
 		return nil, fmt.Errorf("error preparing query ListContacts: %w", err)
 	}
@@ -220,6 +226,16 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing getUserByIdStmt: %w", cerr)
 		}
 	}
+	if q.incrementLossesStmt != nil {
+		if cerr := q.incrementLossesStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing incrementLossesStmt: %w", cerr)
+		}
+	}
+	if q.incrementWinsStmt != nil {
+		if cerr := q.incrementWinsStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing incrementWinsStmt: %w", cerr)
+		}
+	}
 	if q.listContactsStmt != nil {
 		if cerr := q.listContactsStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing listContactsStmt: %w", cerr)
@@ -343,6 +359,8 @@ type Queries struct {
 	getMatchByIdStmt       *sql.Stmt
 	getMatchPlayersStmt    *sql.Stmt
 	getUserByIdStmt        *sql.Stmt
+	incrementLossesStmt    *sql.Stmt
+	incrementWinsStmt      *sql.Stmt
 	listContactsStmt       *sql.Stmt
 	listFormatsStmt        *sql.Stmt
 	listGamesStmt          *sql.Stmt
@@ -381,6 +399,8 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		getMatchByIdStmt:       q.getMatchByIdStmt,
 		getMatchPlayersStmt:    q.getMatchPlayersStmt,
 		getUserByIdStmt:        q.getUserByIdStmt,
+		incrementLossesStmt:    q.incrementLossesStmt,
+		incrementWinsStmt:      q.incrementWinsStmt,
 		listContactsStmt:       q.listContactsStmt,
 		listFormatsStmt:        q.listFormatsStmt,
 		listGamesStmt:          q.listGamesStmt,

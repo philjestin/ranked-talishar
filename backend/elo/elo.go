@@ -14,6 +14,7 @@ import (
 const (
   KFactor = 32  // K-factor for rating adjustments
   cValue  = 400 // Constant for expected score calculation
+  ScalingFactor
 )
 
 // Player represents a player with their current ELO rating
@@ -23,16 +24,16 @@ type Player struct {
 }
 
 
-func UpdateRatings(ctx context.Context, q *db.Queries, playerAID, playerBID uuid.UUID, scoreA float64) error {
+func UpdateRatings(ctx context.Context, q *db.Queries, winnerID, loserID uuid.UUID) error {
 	// Fetch player information from database using IDs
-	playerA, err := q.GetUserById(ctx, playerAID)
+	winner, err := q.GetUserById(ctx, winnerID)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return errors.New("player not found")
 		}
 		return err
 	}
-	playerB, err := q.GetUserById(ctx, playerBID)
+	loser, err := q.GetUserById(ctx, loserID)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return errors.New("player not found")
@@ -40,33 +41,38 @@ func UpdateRatings(ctx context.Context, q *db.Queries, playerAID, playerBID uuid
 		return err
 	}
 
-	// Calculate expected scores based on current ratings
-	expectedA := ExpectedScore(playerA.Elo, playerB.Elo)
-	expectedB := 1 - expectedA
+	// Calculate rating difference
+	ratingDiff := winner.Elo - loser.Elo
+
+	// Adjust K-Factor based on rating difference
+	KFactor := KFactor - int32(math.Abs(float64(ratingDiff))/ScalingFactor)
+	// // Calculate expected scores based on current ratings
+	expectedWinnerScore := ExpectedScore(winner.Elo, loser.Elo)
+	expectedLoserScore := 1 - expectedWinnerScore
 
 	// Perform calculations with float64 for better precision
-	ratingChangeA := KFactor * (scoreA - expectedA)
-	ratingChangeB := KFactor * ((1 - scoreA) - expectedB)
+	winnerRatingChange := float64(KFactor) * (1.0 - expectedWinnerScore)
+	loserRatingChange := float64(KFactor) * (expectedLoserScore - 0)
 
 	// Round the rating changes to nearest integer before updating
-	newRatingA := playerA.Elo + int32(math.Round(ratingChangeA))
-	newRatingB := playerB.Elo + int32(math.Round(ratingChangeB))
+	newWinnerRating := winner.Elo + int32(math.Round(winnerRatingChange))
+	newLoserRating := loser.Elo - int32(math.Round(loserRatingChange))
 
   // Update player ratings in the database (using sqlc queries)
-  playerAParams := db.UpdatePlayerRatingParams{
-    Elo:    sql.NullInt32{Int32: int32(newRatingA), Valid: true},
-    UserID: uuid.NullUUID{UUID: playerA.UserID, Valid: true},
+  winnerParams := db.UpdatePlayerRatingParams{
+    Elo:    sql.NullInt32{Int32: int32(newWinnerRating), Valid: true},
+    UserID: uuid.NullUUID{UUID: winner.UserID, Valid: true},
   }
-  err = q.UpdatePlayerRating(ctx, playerAParams)
+  err = q.UpdatePlayerRating(ctx, winnerParams)
   if err != nil {
     return err
   }
 
-  playerBParams := db.UpdatePlayerRatingParams{
-    Elo:    sql.NullInt32{Int32: int32(newRatingB), Valid: true},
-    UserID: uuid.NullUUID{UUID: playerA.UserID, Valid: true},
+  loserParams := db.UpdatePlayerRatingParams{
+    Elo:    sql.NullInt32{Int32: int32(newLoserRating), Valid: true},
+    UserID: uuid.NullUUID{UUID: loser.UserID, Valid: true},
   }
-  err = q.UpdatePlayerRating(ctx, playerBParams)
+  err = q.UpdatePlayerRating(ctx, loserParams)
   if err != nil {
     return err
   }
@@ -76,5 +82,5 @@ func UpdateRatings(ctx context.Context, q *db.Queries, playerAID, playerBID uuid
 
 // ExpectedScore calculates the expected score (win probability) for a player
 func ExpectedScore(ratingA, ratingB int32) float64 {
-	return 1 / (1 + math.Pow(10, float64(ratingB-ratingA)/cValue))
+	return 1 / (1 + math.Exp(float64(ratingB-ratingA)/400))
 }
