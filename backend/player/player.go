@@ -10,8 +10,8 @@ import (
 	db "github.com/philjestin/ranked-talishar/db/sqlc"
 )
 
+// Fetch player information from database using IDs
 func UpdatePlayersWinLossColumns(ctx context.Context, q *db.Queries, winnerId, loserId uuid.UUID) error {
-	// Fetch player information from database using IDs
 	winner, err := q.GetUserById(ctx, winnerId)
 	if err != nil {
 		if err == sql.ErrNoRows {

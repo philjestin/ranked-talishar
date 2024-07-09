@@ -46,5 +46,5 @@ WHERE user_id = sqlc.arg('user_id');
 -- name: IncrementLosses :exec
 UPDATE users
 SET
- losses = coalesce(sqlc.narg('losses'), losses + 1)
+losses = coalesce(sqlc.narg('losses'), losses + 1)
 WHERE user_id = sqlc.arg('user_id');

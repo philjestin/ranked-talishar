@@ -46,6 +46,7 @@ func UpdateRatings(ctx context.Context, q *db.Queries, winnerID, loserID uuid.UU
 
 	// Adjust K-Factor based on rating difference
 	KFactor := KFactor - int32(math.Abs(float64(ratingDiff))/ScalingFactor)
+
 	// // Calculate expected scores based on current ratings
 	expectedWinnerScore := ExpectedScore(winner.Elo, loser.Elo)
 	expectedLoserScore := 1 - expectedWinnerScore

@@ -12,7 +12,7 @@ import (
 	"github.com/philjestin/ranked-talishar/elo"
 	"github.com/philjestin/ranked-talishar/player"
 
-	_ "github.com/lib/pq" // Assuming you're using PostgreSQL
+	_ "github.com/lib/pq"
 )
 
 // NotificationPayload represents the data structure of your notification message
@@ -126,6 +126,5 @@ func getPlayersFromMatch(q *db.Queries, matchID uuid.UUID) (uuid.UUID, uuid.UUID
 		return uuid.Nil, uuid.Nil, err
 	}
 
-	log.Printf("winner_id %s loser_id %s inside of getPlayersFromMatch", winnerID, loserID)
 	return winnerID, loserID, nil
 }

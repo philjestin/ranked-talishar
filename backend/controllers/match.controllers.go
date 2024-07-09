@@ -163,16 +163,15 @@ func (cc *MatchController) UpdateMatch(ctx *gin.Context) {
 
 	match, err := cc.db.UpdateMatch(ctx, *args)
 
-	  // Check if loser_id or winner_id has changed
+	// Check if loser_id or winner_id has changed
   hasWinnerIDChanged := match.WinnerID.Valid
   hasLoserIDChanged := match.LoserID.Valid
 
-	  // Send notification only if winner and loser ID has changed
+	// Send notification only if winner and loser ID has changed
   if hasWinnerIDChanged && hasLoserIDChanged {
     err := util.SendMatchUpdateNotification(ctx, cc.db, match.MatchID, payload.WinnerID, payload.LoserID)
     if err != nil {
       log.Printf("Error sending notification for match update: %v\n", err)
-      // Handle error based on your needs
     }
   }
 
@@ -240,11 +239,11 @@ func (cc *MatchController) GetAllMatches(ctx *gin.Context) {
 
 	matches, err := cc.db.ListMatches(ctx, *args)
 	if err != nil {
-			ctx.JSON(http.StatusBadGateway, gin.H{
-				"status": "Failed to retrieve matchs",
-				"error": err.Error(),
-			})
-			return
+		ctx.JSON(http.StatusBadGateway, gin.H{
+			"status": "Failed to retrieve matches",
+			"error": err.Error(),
+		})
+		return
 	}
 
 	if matches == nil {
@@ -252,7 +251,7 @@ func (cc *MatchController) GetAllMatches(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{
-		"status": "Successfully retrieved all matchs",
+		"status": "Successfully retrieved all matches",
 		"size": len(matches),
 		"matchs": matches,
 	})

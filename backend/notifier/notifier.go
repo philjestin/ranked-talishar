@@ -13,7 +13,6 @@ import (
 
 // NotificationPayload represents the data structure of your notification message
 type NotificationPayload struct {
-  // Add fields for your notification data here (e.g., matchID, winnerID, loserID)
   MatchID uuid.UUID `json:"match_id"`
 }
 
