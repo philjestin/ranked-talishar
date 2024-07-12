@@ -1,0 +1,71 @@
+// package db
+
+// import (
+// 	"context"
+// 	"database/sql"
+// 	"fmt"
+
+// 	"github.com/google/uuid"
+// )
+
+// type Store struct {
+// 	*Queries
+// 	db *sql.DB
+// }
+
+// func NewStore(db *sql.DB) *Store {
+// 	return &Store{
+// 		db: db,
+// 		Queries: New(db),
+// 	}
+// }
+
+// func (store *Store) execTx(ctx context.Context, fn func(*Queries) error) error {
+// 	tx, err := store.db.BeginTx(ctx, nil)
+
+// 	if err != nil {
+// 		return err
+// 	}
+
+// 	q := New(tx)
+
+// 	err = fn(q)
+
+// 	if err != nil {
+// 		if rbErr := tx.Rollback(); rbErr != nil {
+// 			return fmt.Errorf(("tx err: %w, rb err: %w"), err, rbErr)
+// 		}
+// 		return err
+// 	}
+// 	return tx.Commit()
+// }
+
+// // MatchCompletionTxParams contains the input parameters for the match completion transaction
+// type MatchCompletionTxParams struct {
+// 		WinnerID uuid.UUID `json:"winner_id"`
+// 		LoserID uuid.UUID `json:"loser_id"`
+// 		WinnerUpdatedElo sql.NullInt32 `json:"elo"`
+// }
+
+// type MatchCompletionTxResult struct {
+// 	Winner User `json:"winner"`
+// 	Loser User `json:"loser"`
+// 	Match Match `json:"match"`
+// }
+
+// // MatchCompletionTx performs an operation with two accounts at the end of a match.
+// // It creates a win record, add win entry, and update users win, loss, and elo changes within a single
+// // database transaction
+// func (store *Store) MatchCompletionTx(ctx context.Context, arg MatchCompletionTxParams) (MatchCompletionTxResult, error) {
+// 	var result MatchCompletionTxResult
+
+// 	err := store.execTx(ctx, func(q *Queries) error {
+// 			// Need to create CreateMatchCompletionParams
+// 			result.CompleteMatch, err = q.CreateMatchCompletion(ctx, CreateMatchCompletionParams{
+
+// 			})
+// 			return nil
+// 	})
+
+// 	return result, err
+// }
