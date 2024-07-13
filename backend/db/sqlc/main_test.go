@@ -21,13 +21,13 @@ const (
 // of all unit tests inside 1 specific golang package
 // in this case package db
 func TestMain(m *testing.M) {
-		conn, err := sql.Open(dbDriver, dbSource)
+	conn, err := sql.Open(dbDriver, dbSource)
 
-		if err != nil {
-			log.Fatal("cannot connect to the database:", err)
-		}
+	if err != nil {
+		log.Fatal("cannot connect to the database:", err)
+	}
 
-		testQueries = New(conn)
+	testQueries = New(conn)
 
-		os.Exit(m.Run())
+	os.Exit(m.Run())
 }

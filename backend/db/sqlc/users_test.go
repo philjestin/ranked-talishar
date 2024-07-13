@@ -14,10 +14,10 @@ func createRandomUser(t *testing.T) User {
 
 	require.NoError(t, err)
 
-	arg:= CreateUserParams{
-		UserName: test_util.RandomFirstName(),
+	arg := CreateUserParams{
+		UserName:       test_util.RandomFirstName(),
 		HashedPassword: hashedPassword,
-		UserEmail: test_util.RandomString(12),
+		UserEmail:      test_util.RandomString(12),
 	}
 
 	user, err := testQueries.CreateUser(context.Background(), arg)
