@@ -71,13 +71,15 @@ type Ranking struct {
 }
 
 type User struct {
-	UserID    uuid.UUID `json:"user_id"`
-	UserName  string    `json:"user_name"`
-	UserEmail string    `json:"user_email"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
-	Wins      int32     `json:"wins"`
-	Losses    int32     `json:"losses"`
-	Ties      int32     `json:"ties"`
-	Elo       int32     `json:"elo"`
+	UserID            uuid.UUID    `json:"user_id"`
+	UserName          string       `json:"user_name"`
+	UserEmail         string       `json:"user_email"`
+	CreatedAt         time.Time    `json:"created_at"`
+	UpdatedAt         time.Time    `json:"updated_at"`
+	Wins              int32        `json:"wins"`
+	Losses            int32        `json:"losses"`
+	Ties              int32        `json:"ties"`
+	Elo               int32        `json:"elo"`
+	HashedPassword    string       `json:"hashed_password"`
+	PasswordChangedAt sql.NullTime `json:"password_changed_at"`
 }

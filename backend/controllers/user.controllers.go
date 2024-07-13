@@ -38,6 +38,7 @@ func (cc *UserController) CreateUser(ctx *gin.Context) {
         UserEmail:    payload.UserEmail,
         CreatedAt:   now,
         UpdatedAt:   now,
+        HashedPassword: payload.HashedPassword,
     }
 
     user, err := cc.db.CreateUser(ctx, *args)
@@ -66,6 +67,7 @@ func (cc *UserController) UpdateUser(ctx *gin.Context) {
         UserName:   sql.NullString{String: payload.UserName, Valid: payload.UserName != ""},
         UserEmail:    sql.NullString{String: payload.UserEmail, Valid: payload.UserEmail != ""},
         UpdatedAt:   sql.NullTime{Time: now, Valid: true},
+        HashedPassword: sql.NullString{String: payload.HashedPassword, Valid: payload.HashedPassword != ""},
     }
 
     user, err := cc.db.UpdateUser(ctx, *args)

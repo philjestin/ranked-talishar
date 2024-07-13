@@ -3,9 +3,10 @@ INSERT INTO users(
     user_name,
     user_email,
     created_at,
-    updated_at
+    updated_at,
+    hashed_password
 ) VALUES (
-    $1, $2, $3, $4
+    $1, $2, $3, $4, $5
 ) RETURNING *;
 
 -- name: GetUserById :one
@@ -23,7 +24,9 @@ UPDATE users
 SET
 user_name = coalesce(sqlc.narg('user_name'), user_name),
 user_email = coalesce(sqlc.narg('user_email'), user_email),
-updated_at = coalesce(sqlc.narg('updated_at'), updated_at)
+updated_at = coalesce(sqlc.narg('updated_at'), updated_at),
+hashed_password = COALESCE(sqlc.narg('hashed_password'), hashed_password),
+password_changed_at = COALESCE(sqlc.narg('password_changed_at'), password_changed_at)
 WHERE user_id = sqlc.arg('user_id')
 RETURNING *;
 

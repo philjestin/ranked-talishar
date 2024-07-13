@@ -18,17 +18,19 @@ INSERT INTO users(
     user_name,
     user_email,
     created_at,
-    updated_at
+    updated_at,
+    hashed_password
 ) VALUES (
-    $1, $2, $3, $4
-) RETURNING user_id, user_name, user_email, created_at, updated_at, wins, losses, ties, elo
+    $1, $2, $3, $4, $5
+) RETURNING user_id, user_name, user_email, created_at, updated_at, wins, losses, ties, elo, hashed_password, password_changed_at
 `
 
 type CreateUserParams struct {
-	UserName  string    `json:"user_name"`
-	UserEmail string    `json:"user_email"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	UserName       string    `json:"user_name"`
+	UserEmail      string    `json:"user_email"`
+	CreatedAt      time.Time `json:"created_at"`
+	UpdatedAt      time.Time `json:"updated_at"`
+	HashedPassword string    `json:"hashed_password"`
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
@@ -37,6 +39,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		arg.UserEmail,
 		arg.CreatedAt,
 		arg.UpdatedAt,
+		arg.HashedPassword,
 	)
 	var i User
 	err := row.Scan(
@@ -49,6 +52,8 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		&i.Losses,
 		&i.Ties,
 		&i.Elo,
+		&i.HashedPassword,
+		&i.PasswordChangedAt,
 	)
 	return i, err
 }
@@ -64,7 +69,7 @@ func (q *Queries) DeleteUser(ctx context.Context, userID uuid.UUID) error {
 }
 
 const getUserById = `-- name: GetUserById :one
-SELECT user_id, user_name, user_email, created_at, updated_at, wins, losses, ties, elo FROM users
+SELECT user_id, user_name, user_email, created_at, updated_at, wins, losses, ties, elo, hashed_password, password_changed_at FROM users
 WHERE user_id = $1 LIMIT 1
 `
 
@@ -81,6 +86,8 @@ func (q *Queries) GetUserById(ctx context.Context, userID uuid.UUID) (User, erro
 		&i.Losses,
 		&i.Ties,
 		&i.Elo,
+		&i.HashedPassword,
+		&i.PasswordChangedAt,
 	)
 	return i, err
 }
@@ -88,7 +95,7 @@ func (q *Queries) GetUserById(ctx context.Context, userID uuid.UUID) (User, erro
 const incrementLosses = `-- name: IncrementLosses :exec
 UPDATE users
 SET
- losses = coalesce($1, losses + 1)
+losses = coalesce($1, losses + 1)
 WHERE user_id = $2
 `
 
@@ -120,7 +127,7 @@ func (q *Queries) IncrementWins(ctx context.Context, arg IncrementWinsParams) er
 }
 
 const listUsers = `-- name: ListUsers :many
-SELECT user_id, user_name, user_email, created_at, updated_at, wins, losses, ties, elo FROM users
+SELECT user_id, user_name, user_email, created_at, updated_at, wins, losses, ties, elo, hashed_password, password_changed_at FROM users
 ORDER BY user_id
 LIMIT $1
 OFFSET $2
@@ -150,6 +157,8 @@ func (q *Queries) ListUsers(ctx context.Context, arg ListUsersParams) ([]User, e
 			&i.Losses,
 			&i.Ties,
 			&i.Elo,
+			&i.HashedPassword,
+			&i.PasswordChangedAt,
 		); err != nil {
 			return nil, err
 		}
@@ -186,16 +195,20 @@ UPDATE users
 SET
 user_name = coalesce($1, user_name),
 user_email = coalesce($2, user_email),
-updated_at = coalesce($3, updated_at)
-WHERE user_id = $4
-RETURNING user_id, user_name, user_email, created_at, updated_at, wins, losses, ties, elo
+updated_at = coalesce($3, updated_at),
+hashed_password = COALESCE($4, hashed_password),
+password_changed_at = COALESCE($5, password_changed_at)
+WHERE user_id = $6
+RETURNING user_id, user_name, user_email, created_at, updated_at, wins, losses, ties, elo, hashed_password, password_changed_at
 `
 
 type UpdateUserParams struct {
-	UserName  sql.NullString `json:"user_name"`
-	UserEmail sql.NullString `json:"user_email"`
-	UpdatedAt sql.NullTime   `json:"updated_at"`
-	UserID    uuid.UUID      `json:"user_id"`
+	UserName          sql.NullString `json:"user_name"`
+	UserEmail         sql.NullString `json:"user_email"`
+	UpdatedAt         sql.NullTime   `json:"updated_at"`
+	HashedPassword    sql.NullString `json:"hashed_password"`
+	PasswordChangedAt sql.NullTime   `json:"password_changed_at"`
+	UserID            uuid.UUID      `json:"user_id"`
 }
 
 func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error) {
@@ -203,6 +216,8 @@ func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, e
 		arg.UserName,
 		arg.UserEmail,
 		arg.UpdatedAt,
+		arg.HashedPassword,
+		arg.PasswordChangedAt,
 		arg.UserID,
 	)
 	var i User
@@ -216,6 +231,8 @@ func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, e
 		&i.Losses,
 		&i.Ties,
 		&i.Elo,
+		&i.HashedPassword,
+		&i.PasswordChangedAt,
 	)
 	return i, err
 }
