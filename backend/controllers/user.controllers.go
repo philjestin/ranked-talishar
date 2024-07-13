@@ -8,6 +8,7 @@ import (
 	"time"
 
 	db "github.com/philjestin/ranked-talishar/db/sqlc"
+	"github.com/philjestin/ranked-talishar/password"
 	"github.com/philjestin/ranked-talishar/schemas"
 
 	"github.com/gin-gonic/gin"
@@ -32,13 +33,18 @@ func (cc *UserController) CreateUser(ctx *gin.Context) {
         return
     }
 
+    hashedPassword, err := password.HashedPassword(payload.Password)
+    if err != nil {
+        ctx.JSON(http.StatusInternalServerError, gin.H{"status": "Password failed", "error": err.Error()})
+    }
+
     now := time.Now()
     args := &db.CreateUserParams{
         UserName:   payload.UserName,
         UserEmail:    payload.UserEmail,
         CreatedAt:   now,
         UpdatedAt:   now,
-        HashedPassword: payload.HashedPassword,
+        HashedPassword: hashedPassword,
     }
 
     user, err := cc.db.CreateUser(ctx, *args)
@@ -67,7 +73,7 @@ func (cc *UserController) UpdateUser(ctx *gin.Context) {
         UserName:   sql.NullString{String: payload.UserName, Valid: payload.UserName != ""},
         UserEmail:    sql.NullString{String: payload.UserEmail, Valid: payload.UserEmail != ""},
         UpdatedAt:   sql.NullTime{Time: now, Valid: true},
-        HashedPassword: sql.NullString{String: payload.HashedPassword, Valid: payload.HashedPassword != ""},
+        HashedPassword: sql.NullString{String: payload.Password, Valid: payload.Password != ""},
     }
 
     user, err := cc.db.UpdateUser(ctx, *args)
