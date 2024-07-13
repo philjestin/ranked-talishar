@@ -67,13 +67,18 @@ func (cc *UserController) UpdateUser(ctx *gin.Context) {
         return
     }
 
+    hashedPassword, err := password.HashedPassword(payload.Password)
+    if err != nil {
+        ctx.JSON(http.StatusInternalServerError, gin.H{"status": "Password failed", "error": err.Error()})
+    }
+
     now := time.Now()
     args := &db.UpdateUserParams{
         UserID:   uuid.MustParse(userId),
         UserName:   sql.NullString{String: payload.UserName, Valid: payload.UserName != ""},
         UserEmail:    sql.NullString{String: payload.UserEmail, Valid: payload.UserEmail != ""},
         UpdatedAt:   sql.NullTime{Time: now, Valid: true},
-        HashedPassword: sql.NullString{String: payload.Password, Valid: payload.Password != ""},
+        HashedPassword: sql.NullString{String: hashedPassword, Valid: hashedPassword != ""},
     }
 
     user, err := cc.db.UpdateUser(ctx, *args)
