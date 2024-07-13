@@ -1,5 +1,9 @@
 package schemas
 
+import (
+	"time"
+)
+
 type CreateUser struct {
     UserName     string `json:"user_name" binding:"required,alphanum"`
     UserEmail    string `json:"user_email" binding:"required,email"`
@@ -10,4 +14,19 @@ type UpdateUser struct {
     UserName     string `json:"user_name"`
     UserEmail    string `json:"user_email"`
     Password string `json:"password"`
+}
+
+type CreateUserResponse struct {
+    UserName          string `json:"user_name"`
+	UserEmail         string `json:"user_email"`
+	CreatedAt         time.Time   `json:"updated_at"`
+    PasswordChangedAt time.Time   `json:"password_changed_at"`
+}
+
+type UpdateUserResponse struct {
+    UserName          string `json:"user_name"`
+	UserEmail         string `json:"user_email"`
+	UpdatedAt         time.Time   `json:"updated_at"`
+	PasswordChangedAt time.Time   `json:"password_changed_at"`
+    CreatedAt           time.Time `json:"created_at"`
 }

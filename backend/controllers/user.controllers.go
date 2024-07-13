@@ -54,7 +54,14 @@ func (cc *UserController) CreateUser(ctx *gin.Context) {
         return
     }
 
-    ctx.JSON(http.StatusOK, gin.H{"status": "successfully created user", "user": user})
+    rsp := schemas.CreateUserResponse{
+        UserName: user.UserName,
+        UserEmail: user.UserEmail,
+        CreatedAt: user.CreatedAt,
+        PasswordChangedAt: user.PasswordChangedAt.Time,
+    }
+
+    ctx.JSON(http.StatusOK, gin.H{"status": "successfully created user", "user": rsp})
 }
 
 // Update user handler
@@ -92,7 +99,14 @@ func (cc *UserController) UpdateUser(ctx *gin.Context) {
         return
     }
 
-    ctx.JSON(http.StatusOK, gin.H{"status": "successfully updated user", "user": user})
+    rsp := schemas.UpdateUserResponse{
+        UserName: user.UserName,
+        UserEmail: user.UserEmail,
+        CreatedAt: user.CreatedAt,
+        PasswordChangedAt: user.PasswordChangedAt.Time,
+    }
+
+    ctx.JSON(http.StatusOK, gin.H{"status": "successfully updated user", "user": rsp})
 }
 
 // Get a single handler
