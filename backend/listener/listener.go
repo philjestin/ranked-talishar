@@ -17,9 +17,9 @@ import (
 
 // NotificationPayload represents the data structure of your notification message
 type NotificationPayload struct {
-	MatchID uuid.UUID `json:"match_id"`
+	MatchID  uuid.UUID `json:"match_id"`
 	WinnerID uuid.UUID `json:"winner_id"`
-	LoserID uuid.UUID `json:"loser_id"`
+	LoserID  uuid.UUID `json:"loser_id"`
 }
 
 func ListenNotifications(ctx context.Context, connString string, channel string, q *db.Queries) error {

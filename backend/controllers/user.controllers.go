@@ -16,163 +16,163 @@ import (
 )
 
 type UserController struct {
-    db  *db.Queries
-    ctx context.Context
+	db  *db.Queries
+	ctx context.Context
 }
 
 func NewUserController(db *db.Queries, ctx context.Context) *UserController {
-    return &UserController{db, ctx}
+	return &UserController{db, ctx}
 }
 
 // Create user handler
 func (cc *UserController) CreateUser(ctx *gin.Context) {
-    var payload *schemas.CreateUser
+	var payload *schemas.CreateUser
 
-    if err := ctx.ShouldBindJSON(&payload); err != nil {
-        ctx.JSON(http.StatusBadRequest, gin.H{"status": "Failed payload", "error": err.Error()})
-        return
-    }
+	if err := ctx.ShouldBindJSON(&payload); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"status": "Failed payload", "error": err.Error()})
+		return
+	}
 
-    hashedPassword, err := password.HashedPassword(payload.Password)
-    if err != nil {
-        ctx.JSON(http.StatusInternalServerError, gin.H{"status": "Password failed", "error": err.Error()})
-    }
+	hashedPassword, err := password.HashedPassword(payload.Password)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"status": "Password failed", "error": err.Error()})
+	}
 
-    now := time.Now()
-    args := &db.CreateUserParams{
-        UserName:   payload.UserName,
-        UserEmail:    payload.UserEmail,
-        CreatedAt:   now,
-        UpdatedAt:   now,
-        HashedPassword: hashedPassword,
-    }
+	now := time.Now()
+	args := &db.CreateUserParams{
+		UserName:       payload.UserName,
+		UserEmail:      payload.UserEmail,
+		CreatedAt:      now,
+		UpdatedAt:      now,
+		HashedPassword: hashedPassword,
+	}
 
-    user, err := cc.db.CreateUser(ctx, *args)
+	user, err := cc.db.CreateUser(ctx, *args)
 
-    if err != nil {
-        ctx.JSON(http.StatusBadGateway, gin.H{"status": "Failed retrieving user", "error": err.Error()})
-        return
-    }
+	if err != nil {
+		ctx.JSON(http.StatusBadGateway, gin.H{"status": "Failed retrieving user", "error": err.Error()})
+		return
+	}
 
-    rsp := schemas.CreateUserResponse{
-        UserName: user.UserName,
-        UserEmail: user.UserEmail,
-        CreatedAt: user.CreatedAt,
-        PasswordChangedAt: user.PasswordChangedAt.Time,
-    }
+	rsp := schemas.CreateUserResponse{
+		UserName:          user.UserName,
+		UserEmail:         user.UserEmail,
+		CreatedAt:         user.CreatedAt,
+		PasswordChangedAt: user.PasswordChangedAt.Time,
+	}
 
-    ctx.JSON(http.StatusOK, gin.H{"status": "successfully created user", "user": rsp})
+	ctx.JSON(http.StatusOK, gin.H{"status": "successfully created user", "user": rsp})
 }
 
 // Update user handler
 func (cc *UserController) UpdateUser(ctx *gin.Context) {
-    var payload *schemas.UpdateUser
-    userId := ctx.Param("userId")
+	var payload *schemas.UpdateUser
+	userId := ctx.Param("userId")
 
-    if err := ctx.ShouldBindJSON(&payload); err != nil {
-        ctx.JSON(http.StatusBadRequest, gin.H{"status": "Failed payload", "error": err.Error()})
-        return
-    }
+	if err := ctx.ShouldBindJSON(&payload); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"status": "Failed payload", "error": err.Error()})
+		return
+	}
 
-    hashedPassword, err := password.HashedPassword(payload.Password)
-    if err != nil {
-        ctx.JSON(http.StatusInternalServerError, gin.H{"status": "Password failed", "error": err.Error()})
-    }
+	hashedPassword, err := password.HashedPassword(payload.Password)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"status": "Password failed", "error": err.Error()})
+	}
 
-    now := time.Now()
-    args := &db.UpdateUserParams{
-        UserID:   uuid.MustParse(userId),
-        UserName:   sql.NullString{String: payload.UserName, Valid: payload.UserName != ""},
-        UserEmail:    sql.NullString{String: payload.UserEmail, Valid: payload.UserEmail != ""},
-        UpdatedAt:   sql.NullTime{Time: now, Valid: true},
-        HashedPassword: sql.NullString{String: hashedPassword, Valid: hashedPassword != ""},
-    }
+	now := time.Now()
+	args := &db.UpdateUserParams{
+		UserID:         uuid.MustParse(userId),
+		UserName:       sql.NullString{String: payload.UserName, Valid: payload.UserName != ""},
+		UserEmail:      sql.NullString{String: payload.UserEmail, Valid: payload.UserEmail != ""},
+		UpdatedAt:      sql.NullTime{Time: now, Valid: true},
+		HashedPassword: sql.NullString{String: hashedPassword, Valid: hashedPassword != ""},
+	}
 
-    user, err := cc.db.UpdateUser(ctx, *args)
+	user, err := cc.db.UpdateUser(ctx, *args)
 
-    if err != nil {
-        if err == sql.ErrNoRows {
-            ctx.JSON(http.StatusNotFound, gin.H{"status": "failed", "message": "Failed to retrieve user with this ID"})
-            return
-        }
-        ctx.JSON(http.StatusBadGateway, gin.H{"status": "Failed retrieving user", "error": err.Error()})
-        return
-    }
+	if err != nil {
+		if err == sql.ErrNoRows {
+			ctx.JSON(http.StatusNotFound, gin.H{"status": "failed", "message": "Failed to retrieve user with this ID"})
+			return
+		}
+		ctx.JSON(http.StatusBadGateway, gin.H{"status": "Failed retrieving user", "error": err.Error()})
+		return
+	}
 
-    rsp := schemas.UpdateUserResponse{
-        UserName: user.UserName,
-        UserEmail: user.UserEmail,
-        CreatedAt: user.CreatedAt,
-        PasswordChangedAt: user.PasswordChangedAt.Time,
-    }
+	rsp := schemas.UpdateUserResponse{
+		UserName:          user.UserName,
+		UserEmail:         user.UserEmail,
+		CreatedAt:         user.CreatedAt,
+		PasswordChangedAt: user.PasswordChangedAt.Time,
+	}
 
-    ctx.JSON(http.StatusOK, gin.H{"status": "successfully updated user", "user": rsp})
+	ctx.JSON(http.StatusOK, gin.H{"status": "successfully updated user", "user": rsp})
 }
 
 // Get a single handler
 func (cc *UserController) GetUserById(ctx *gin.Context) {
-    userId := ctx.Param("userId")
+	userId := ctx.Param("userId")
 
-    user, err := cc.db.GetUserById(ctx, uuid.MustParse(userId))
-    if err != nil {
-        if err == sql.ErrNoRows {
-            ctx.JSON(http.StatusNotFound, gin.H{"status": "failed", "message": "Failed to retrieve user with this ID"})
-            return
-        }
-        ctx.JSON(http.StatusBadGateway, gin.H{"status": "Failed retrieving user", "error": err.Error()})
-        return
-    }
+	user, err := cc.db.GetUserById(ctx, uuid.MustParse(userId))
+	if err != nil {
+		if err == sql.ErrNoRows {
+			ctx.JSON(http.StatusNotFound, gin.H{"status": "failed", "message": "Failed to retrieve user with this ID"})
+			return
+		}
+		ctx.JSON(http.StatusBadGateway, gin.H{"status": "Failed retrieving user", "error": err.Error()})
+		return
+	}
 
-    ctx.JSON(http.StatusOK, gin.H{"status": "Successfully retrieved id", "user": user})
+	ctx.JSON(http.StatusOK, gin.H{"status": "Successfully retrieved id", "user": user})
 }
 
 // Retrieve all records handlers
 func (cc *UserController) GetAllUsers(ctx *gin.Context) {
-    var page = ctx.DefaultQuery("page", "1")
-    var limit = ctx.DefaultQuery("limit", "10")
+	var page = ctx.DefaultQuery("page", "1")
+	var limit = ctx.DefaultQuery("limit", "10")
 
-    reqPageID, _ := strconv.Atoi(page)
-    reqLimit, _ := strconv.Atoi(limit)
-    offset := (reqPageID - 1) * reqLimit
+	reqPageID, _ := strconv.Atoi(page)
+	reqLimit, _ := strconv.Atoi(limit)
+	offset := (reqPageID - 1) * reqLimit
 
-    args := &db.ListUsersParams{
-        Limit:  int32(reqLimit),
-        Offset: int32(offset),
-    }
+	args := &db.ListUsersParams{
+		Limit:  int32(reqLimit),
+		Offset: int32(offset),
+	}
 
-    users, err := cc.db.ListUsers(ctx, *args)
-    if err != nil {
-        ctx.JSON(http.StatusBadGateway, gin.H{"status": "Failed to retrieve users", "error": err.Error()})
-        return
-    }
+	users, err := cc.db.ListUsers(ctx, *args)
+	if err != nil {
+		ctx.JSON(http.StatusBadGateway, gin.H{"status": "Failed to retrieve users", "error": err.Error()})
+		return
+	}
 
-    if users == nil {
-        users = []db.User{}
-    }
+	if users == nil {
+		users = []db.User{}
+	}
 
-    ctx.JSON(http.StatusOK, gin.H{"status": "Successfully retrieved all users", "size": len(users), "users": users})
+	ctx.JSON(http.StatusOK, gin.H{"status": "Successfully retrieved all users", "size": len(users), "users": users})
 }
 
 // Deleting user handlers
 func (cc *UserController) DeleteUserById(ctx *gin.Context) {
-    userId := ctx.Param("userId")
+	userId := ctx.Param("userId")
 
-    _, err := cc.db.GetUserById(ctx, uuid.MustParse(userId))
-    if err != nil {
-        if err == sql.ErrNoRows {
-            ctx.JSON(http.StatusNotFound, gin.H{"status": "failed", "message": "Failed to retrieve user with this ID"})
-            return
-        }
-        ctx.JSON(http.StatusBadGateway, gin.H{"status": "Failed retrieving user", "error": err.Error()})
-        return
-    }
+	_, err := cc.db.GetUserById(ctx, uuid.MustParse(userId))
+	if err != nil {
+		if err == sql.ErrNoRows {
+			ctx.JSON(http.StatusNotFound, gin.H{"status": "failed", "message": "Failed to retrieve user with this ID"})
+			return
+		}
+		ctx.JSON(http.StatusBadGateway, gin.H{"status": "Failed retrieving user", "error": err.Error()})
+		return
+	}
 
-    err = cc.db.DeleteUser(ctx, uuid.MustParse(userId))
-    if err != nil {
-        ctx.JSON(http.StatusBadGateway, gin.H{"status": "failed", "error": err.Error()})
-        return
-    }
+	err = cc.db.DeleteUser(ctx, uuid.MustParse(userId))
+	if err != nil {
+		ctx.JSON(http.StatusBadGateway, gin.H{"status": "failed", "error": err.Error()})
+		return
+	}
 
-    ctx.JSON(http.StatusNoContent, gin.H{"status": "successfuly deleted"})
+	ctx.JSON(http.StatusNoContent, gin.H{"status": "successfuly deleted"})
 
 }

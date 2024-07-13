@@ -20,4 +20,3 @@ func TestPingRoute(t *testing.T) {
 }
 
 // Test for POST /user/add
-

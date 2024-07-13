@@ -6,19 +6,19 @@ import (
 )
 
 type ContactRoutes struct {
-    contactController controllers.ContactController
+	contactController controllers.ContactController
 }
 
 func NewRouteContact(contactController controllers.ContactController) ContactRoutes {
-    return ContactRoutes{contactController}
+	return ContactRoutes{contactController}
 }
 
 func (cr *ContactRoutes) ContactRoute(rg *gin.RouterGroup) {
 
-    router := rg.Group("contacts")
-    router.POST("/", cr.contactController.CreateContact)
-    router.GET("/", cr.contactController.GetAllContacts)
-    router.PATCH("/:contactId", cr.contactController.UpdateContact)
-    router.GET("/:contactId", cr.contactController.GetContactById)
-    router.DELETE("/:contactId", cr.contactController.DeleteContactById)
+	router := rg.Group("contacts")
+	router.POST("/", cr.contactController.CreateContact)
+	router.GET("/", cr.contactController.GetAllContacts)
+	router.PATCH("/:contactId", cr.contactController.UpdateContact)
+	router.GET("/:contactId", cr.contactController.GetContactById)
+	router.DELETE("/:contactId", cr.contactController.DeleteContactById)
 }

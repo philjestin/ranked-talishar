@@ -15,7 +15,7 @@ import (
 )
 
 type HeroController struct {
-	db *db.Queries
+	db  *db.Queries
 	ctx context.Context
 }
 
@@ -30,29 +30,29 @@ func (cc *HeroController) CreateHero(ctx *gin.Context) {
 	if err := ctx.ShouldBindJSON(&payload); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"status": "Failed payload",
-			"error": err.Error(),
+			"error":  err.Error(),
 		})
 		return
 	}
 
 	now := time.Now()
 	args := &db.CreateHeroParams{
-		HeroName:   payload.HeroName,
-		FormatID:    payload.FormatID,
-		CreatedAt:   now,
-		UpdatedAt:   now,
+		HeroName:  payload.HeroName,
+		FormatID:  payload.FormatID,
+		CreatedAt: now,
+		UpdatedAt: now,
 	}
 
 	hero, err := cc.db.CreateHero(ctx, *args)
 
 	if err != nil {
-			ctx.JSON(http.StatusBadGateway, gin.H{"status": "Failed retrieving hero", "error": err.Error()})
-			return
+		ctx.JSON(http.StatusBadGateway, gin.H{"status": "Failed retrieving hero", "error": err.Error()})
+		return
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{
 		"status": "successfully created hero",
-		"hero": hero,
+		"hero":   hero,
 	})
 }
 
@@ -64,16 +64,16 @@ func (cc *HeroController) UpdateHero(ctx *gin.Context) {
 	if err := ctx.ShouldBindJSON(&payload); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"status": "Failed payload",
-			"error": err.Error(),
+			"error":  err.Error(),
 		})
 	}
 
 	now := time.Now()
 	args := &db.UpdateHeroParams{
-		HeroID: 				  uuid.MustParse(heroId),
-		HeroName: 				sql.NullString{String: payload.HeroName, Valid: payload.HeroName != ""},
-		FormatID:  				payload.FormatID,
-		UpdatedAt: 				sql.NullTime{Time: now, Valid: true},
+		HeroID:    uuid.MustParse(heroId),
+		HeroName:  sql.NullString{String: payload.HeroName, Valid: payload.HeroName != ""},
+		FormatID:  payload.FormatID,
+		UpdatedAt: sql.NullTime{Time: now, Valid: true},
 	}
 
 	hero, err := cc.db.UpdateHero(ctx, *args)
@@ -81,47 +81,47 @@ func (cc *HeroController) UpdateHero(ctx *gin.Context) {
 	if err != nil {
 		if err == sql.ErrNoRows {
 			ctx.JSON(http.StatusNotFound, gin.H{
-				"status": "failed",
+				"status":  "failed",
 				"message": "Failed to retrieve hero with this ID",
 			})
 			return
 		}
 		ctx.JSON(http.StatusBadGateway, gin.H{
 			"status": "Failed retrieving hero",
-			"error": err.Error(),
+			"error":  err.Error(),
 		})
 		return
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{
 		"status": "Successfully updated hero",
-		"hero": hero,
+		"hero":   hero,
 	})
 }
 
 // Get a single hero handler
 func (cc *HeroController) GetHeroById(ctx *gin.Context) {
-  heroId := ctx.Param("heroId")
+	heroId := ctx.Param("heroId")
 
 	hero, err := cc.db.GetHeroById(ctx, uuid.MustParse(heroId))
 	if err != nil {
 		if err == sql.ErrNoRows {
-				ctx.JSON(http.StatusNotFound, gin.H{
-					"status": "failed",
-					"message": "Failed to retrieve hero with this ID",
-				})
-				return
+			ctx.JSON(http.StatusNotFound, gin.H{
+				"status":  "failed",
+				"message": "Failed to retrieve hero with this ID",
+			})
+			return
 		}
 		ctx.JSON(http.StatusBadGateway, gin.H{
 			"status": "Failed retrieving hero",
-			"error": err.Error(),
+			"error":  err.Error(),
 		})
 		return
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{
 		"status": "Successfully retrieved id",
-		"hero": hero,
+		"hero":   hero,
 	})
 }
 
@@ -141,11 +141,11 @@ func (cc *HeroController) GetAllHeroes(ctx *gin.Context) {
 
 	heroes, err := cc.db.ListHeroes(ctx, *args)
 	if err != nil {
-			ctx.JSON(http.StatusBadGateway, gin.H{
-				"status": "Failed to retrieve heros",
-				"error": err.Error(),
-			})
-			return
+		ctx.JSON(http.StatusBadGateway, gin.H{
+			"status": "Failed to retrieve heros",
+			"error":  err.Error(),
+		})
+		return
 	}
 
 	if heroes == nil {
@@ -154,27 +154,27 @@ func (cc *HeroController) GetAllHeroes(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, gin.H{
 		"status": "Successfully retrieved all heros",
-		"size": len(heroes),
+		"size":   len(heroes),
 		"heroes": heroes,
 	})
 }
 
 // Deleting Hero handler
 func (cc *HeroController) DeleteHeroById(ctx *gin.Context) {
-    heroId := ctx.Param("heroId")
+	heroId := ctx.Param("heroId")
 
-    _, err := cc.db.GetHeroById(ctx, uuid.MustParse(heroId))
-    if err != nil {
-			if err == sql.ErrNoRows {
-				ctx.JSON(http.StatusNotFound, gin.H{
-					"status": "failed",
-					"message": "Failed to retrieve hero with this ID",
-				})
-				return
+	_, err := cc.db.GetHeroById(ctx, uuid.MustParse(heroId))
+	if err != nil {
+		if err == sql.ErrNoRows {
+			ctx.JSON(http.StatusNotFound, gin.H{
+				"status":  "failed",
+				"message": "Failed to retrieve hero with this ID",
+			})
+			return
 		}
 		ctx.JSON(http.StatusBadGateway, gin.H{
 			"status": "Failed retrieving hero",
-			"error": err.Error(),
+			"error":  err.Error(),
 		})
 		return
 	}
@@ -183,7 +183,7 @@ func (cc *HeroController) DeleteHeroById(ctx *gin.Context) {
 	if err != nil {
 		ctx.JSON(http.StatusBadGateway, gin.H{
 			"status": "failed",
-			"error": err.Error(),
+			"error":  err.Error(),
 		})
 		return
 	}

@@ -19,7 +19,7 @@ type GameController struct {
 }
 
 type CreateGameArgs struct {
-  GameName string `json:"game_name"`
+	GameName string `json:"game_name"`
 }
 
 func NewGameController(db *db.Queries, ctx context.Context) *GameController {
@@ -60,7 +60,7 @@ func (cc *GameController) UpdateGame(ctx *gin.Context) {
 	}
 
 	args := db.UpdateGameParams{
-		GameID: uuid.MustParse(gameId),
+		GameID:   uuid.MustParse(gameId),
 		GameName: sql.NullString{String: payload.GameName, Valid: payload.GameName != ""},
 	}
 
@@ -75,7 +75,7 @@ func (cc *GameController) UpdateGame(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{"status": "successfully updated game", "game": game})	
+	ctx.JSON(http.StatusOK, gin.H{"status": "successfully updated game", "game": game})
 }
 
 // Get a single Game
@@ -102,10 +102,10 @@ func (cc *GameController) GetAllGames(ctx *gin.Context) {
 
 	reqPageID, _ := strconv.Atoi(page)
 	reqLimit, _ := strconv.Atoi(limit)
-	offset := (reqPageID -1) * reqLimit
+	offset := (reqPageID - 1) * reqLimit
 
 	args := &db.ListGamesParams{
-		Limit: int32(reqLimit),
+		Limit:  int32(reqLimit),
 		Offset: int32(offset),
 	}
 
@@ -113,7 +113,7 @@ func (cc *GameController) GetAllGames(ctx *gin.Context) {
 	if err != nil {
 		ctx.JSON(http.StatusBadGateway, gin.H{
 			"status": "Failed to retrieve games",
-			"error": err.Error(),
+			"error":  err.Error(),
 		})
 		return
 	}
@@ -124,8 +124,8 @@ func (cc *GameController) GetAllGames(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, gin.H{
 		"status": "Successfully retrieved all games",
-		"size": len(games),
-		"games": games,
+		"size":   len(games),
+		"games":  games,
 	})
 }
 
@@ -138,14 +138,14 @@ func (cc *GameController) DeleteGameById(ctx *gin.Context) {
 	if err != nil {
 		if err == sql.ErrNoRows {
 			ctx.JSON(http.StatusNotFound, gin.H{
-				"status": "failed",
+				"status":  "failed",
 				"message": "Failed to retrieve game with this ID",
 			})
 			return
 		}
 		ctx.JSON(http.StatusBadGateway, gin.H{
 			"status": "Failed retrieving game",
-			"error": err.Error(),
+			"error":  err.Error(),
 		})
 		return
 	}

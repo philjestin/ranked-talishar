@@ -19,7 +19,7 @@ func UpdatePlayersWinLossColumns(ctx context.Context, q *db.Queries, winnerId, l
 		}
 		return err
 	}
-	
+
 	loser, err := q.GetUserById(ctx, loserId)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -32,16 +32,16 @@ func UpdatePlayersWinLossColumns(ctx context.Context, q *db.Queries, winnerId, l
 		UserID: winner.UserID,
 	}
 	err = q.IncrementWins(ctx, winnerParams)
-  if err != nil {
-    return err
-  }
+	if err != nil {
+		return err
+	}
 
 	loserParams := db.IncrementLossesParams{
 		UserID: loser.UserID,
 	}
 	err = q.IncrementLosses(ctx, loserParams)
-  if err != nil {
-    return err
-  }
+	if err != nil {
+		return err
+	}
 	return nil
 }

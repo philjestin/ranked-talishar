@@ -12,17 +12,16 @@ import (
 )
 
 const (
-  KFactor = 32  // K-factor for rating adjustments
-  cValue  = 400 // Constant for expected score calculation
-  ScalingFactor
+	KFactor = 32  // K-factor for rating adjustments
+	cValue  = 400 // Constant for expected score calculation
+	ScalingFactor
 )
 
 // Player represents a player with their current ELO rating
 type Player struct {
-  UserID uuid.NullUUID `json:"user_id"`
-  Elo int32    `json:"elo"`
+	UserID uuid.NullUUID `json:"user_id"`
+	Elo    int32         `json:"elo"`
 }
-
 
 func UpdateRatings(ctx context.Context, q *db.Queries, winnerID, loserID uuid.UUID) error {
 	// Fetch player information from database using IDs
@@ -59,24 +58,24 @@ func UpdateRatings(ctx context.Context, q *db.Queries, winnerID, loserID uuid.UU
 	newWinnerRating := winner.Elo + int32(math.Round(winnerRatingChange))
 	newLoserRating := loser.Elo - int32(math.Round(loserRatingChange))
 
-  // Update player ratings in the database (using sqlc queries)
-  winnerParams := db.UpdatePlayerRatingParams{
-    Elo:    sql.NullInt32{Int32: int32(newWinnerRating), Valid: true},
-    UserID: uuid.NullUUID{UUID: winner.UserID, Valid: true},
-  }
-  err = q.UpdatePlayerRating(ctx, winnerParams)
-  if err != nil {
-    return err
-  }
+	// Update player ratings in the database (using sqlc queries)
+	winnerParams := db.UpdatePlayerRatingParams{
+		Elo:    sql.NullInt32{Int32: int32(newWinnerRating), Valid: true},
+		UserID: uuid.NullUUID{UUID: winner.UserID, Valid: true},
+	}
+	err = q.UpdatePlayerRating(ctx, winnerParams)
+	if err != nil {
+		return err
+	}
 
-  loserParams := db.UpdatePlayerRatingParams{
-    Elo:    sql.NullInt32{Int32: int32(newLoserRating), Valid: true},
-    UserID: uuid.NullUUID{UUID: loser.UserID, Valid: true},
-  }
-  err = q.UpdatePlayerRating(ctx, loserParams)
-  if err != nil {
-    return err
-  }
+	loserParams := db.UpdatePlayerRatingParams{
+		Elo:    sql.NullInt32{Int32: int32(newLoserRating), Valid: true},
+		UserID: uuid.NullUUID{UUID: loser.UserID, Valid: true},
+	}
+	err = q.UpdatePlayerRating(ctx, loserParams)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
