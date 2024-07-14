@@ -3,12 +3,14 @@ package controllers
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
 	"time"
 
 	db "github.com/philjestin/ranked-talishar/db/sqlc"
+	"github.com/philjestin/ranked-talishar/middleware"
 	"github.com/philjestin/ranked-talishar/password"
 	"github.com/philjestin/ranked-talishar/schemas"
 	"github.com/philjestin/ranked-talishar/token"
@@ -124,28 +126,49 @@ func (cc *UserController) CreateUser(ctx *gin.Context) {
 // Update user handler
 func (cc *UserController) UpdateUser(ctx *gin.Context) {
 	var payload *schemas.UpdateUser
-	userId := ctx.Param("userId")
 
 	if err := ctx.ShouldBindJSON(&payload); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"status": "Failed payload", "error": err.Error()})
 		return
 	}
 
+	user, err := cc.db.GetUser(ctx, payload.UserName)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			ctx.JSON(http.StatusNotFound, gin.H{"status": "failed", "message": "Failed to find user with this username"})
+			return
+		}
+		ctx.JSON(http.StatusInternalServerError, gin.H{"status": "Failed retrieving user", "error": err.Error()})
+		return
+	}
+
+	authPayload := ctx.MustGet(middleware.AuthorizationPayloadKey).(*token.Payload)
+	if user.UserName != authPayload.UserName {
+		err := errors.New("account does not belong to the authenticated user")
+		ctx.JSON(http.StatusUnauthorized, gin.H{
+			"status":  "failed",
+			"message": "Unauthorized",
+			"error":   err.Error(),
+		})
+		return
+	}
+
 	hashedPassword, err := password.HashedPassword(payload.Password)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"status": "Password failed", "error": err.Error()})
+		return
 	}
 
 	now := time.Now()
 	args := &db.UpdateUserParams{
-		UserID:         uuid.MustParse(userId),
+		UserID:         uuid.MustParse(payload.UserId),
 		UserName:       sql.NullString{String: payload.UserName, Valid: payload.UserName != ""},
 		UserEmail:      sql.NullString{String: payload.UserEmail, Valid: payload.UserEmail != ""},
 		UpdatedAt:      sql.NullTime{Time: now, Valid: true},
 		HashedPassword: sql.NullString{String: hashedPassword, Valid: hashedPassword != ""},
 	}
 
-	user, err := cc.db.UpdateUser(ctx, *args)
+	user, err = cc.db.UpdateUser(ctx, *args)
 
 	if err != nil {
 		if err == sql.ErrNoRows {

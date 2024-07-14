@@ -74,7 +74,7 @@ func init() {
 	ContactRoutes = routes.NewRouteContact(ContactController)
 
 	UserController = *controllers.NewUserController(db, context.Background(), jwtMaker, tokenDuration)
-	UserRoutes = routes.NewRouteUser(UserController)
+	UserRoutes = routes.NewRouteUser(UserController, jwtMaker)
 
 	GameController = *controllers.NewGameController(db, context.Background())
 	GameRoutes = routes.NewRouteGame(GameController)
