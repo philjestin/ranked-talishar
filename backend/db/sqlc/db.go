@@ -78,6 +78,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.getMatchPlayersStmt, err = db.PrepareContext(ctx, getMatchPlayers); err != nil {
 		return nil, fmt.Errorf("error preparing query GetMatchPlayers: %w", err)
 	}
+	if q.getUserStmt, err = db.PrepareContext(ctx, getUser); err != nil {
+		return nil, fmt.Errorf("error preparing query GetUser: %w", err)
+	}
 	if q.getUserByIdStmt, err = db.PrepareContext(ctx, getUserById); err != nil {
 		return nil, fmt.Errorf("error preparing query GetUserById: %w", err)
 	}
@@ -221,6 +224,11 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing getMatchPlayersStmt: %w", cerr)
 		}
 	}
+	if q.getUserStmt != nil {
+		if cerr := q.getUserStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getUserStmt: %w", cerr)
+		}
+	}
 	if q.getUserByIdStmt != nil {
 		if cerr := q.getUserByIdStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing getUserByIdStmt: %w", cerr)
@@ -358,6 +366,7 @@ type Queries struct {
 	getHeroByIdStmt        *sql.Stmt
 	getMatchByIdStmt       *sql.Stmt
 	getMatchPlayersStmt    *sql.Stmt
+	getUserStmt            *sql.Stmt
 	getUserByIdStmt        *sql.Stmt
 	incrementLossesStmt    *sql.Stmt
 	incrementWinsStmt      *sql.Stmt
@@ -398,6 +407,7 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		getHeroByIdStmt:        q.getHeroByIdStmt,
 		getMatchByIdStmt:       q.getMatchByIdStmt,
 		getMatchPlayersStmt:    q.getMatchPlayersStmt,
+		getUserStmt:            q.getUserStmt,
 		getUserByIdStmt:        q.getUserByIdStmt,
 		incrementLossesStmt:    q.incrementLossesStmt,
 		incrementWinsStmt:      q.incrementWinsStmt,

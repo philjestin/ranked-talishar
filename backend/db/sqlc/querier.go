@@ -29,6 +29,7 @@ type Querier interface {
 	GetHeroById(ctx context.Context, heroID uuid.UUID) (Hero, error)
 	GetMatchById(ctx context.Context, matchID uuid.UUID) (Match, error)
 	GetMatchPlayers(ctx context.Context, matchID uuid.UUID) ([]GetMatchPlayersRow, error)
+	GetUser(ctx context.Context, userName string) (User, error)
 	GetUserById(ctx context.Context, userID uuid.UUID) (User, error)
 	IncrementLosses(ctx context.Context, arg IncrementLossesParams) error
 	IncrementWins(ctx context.Context, arg IncrementWinsParams) error

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	_ "github.com/lib/pq"
@@ -13,6 +14,7 @@ import (
 	dbCon "github.com/philjestin/ranked-talishar/db/sqlc"
 	"github.com/philjestin/ranked-talishar/listener"
 	"github.com/philjestin/ranked-talishar/routes"
+	"github.com/philjestin/ranked-talishar/token"
 	"github.com/philjestin/ranked-talishar/util"
 )
 
@@ -32,6 +34,9 @@ var (
 	HeroRoutes        routes.HeroRoutes
 	MatchController   controllers.MatchController
 	MatchRoutes       routes.MatchRoutes
+
+	jwtMaker      token.Maker
+	tokenDuration time.Duration
 )
 
 func init() {
@@ -41,6 +46,19 @@ func init() {
 		log.Fatalf("could not load config: %v", err)
 	}
 
+	secretKey := config.TokenSymmetricKey
+	if secretKey == "" {
+		log.Fatal("Missing JWT secret key")
+	}
+
+	tokenDuration = config.AccessTokenDuration
+	jwtMaker, err = token.NewJWTMaker(secretKey)
+	if err != nil {
+		log.Fatal("Failed to create JWT maker:", err)
+	}
+
+	fmt.Println(jwtMaker)
+
 	// Open the database connection
 	conn, err := sql.Open(config.DbDriver, config.DbSource)
 	if err != nil {
@@ -49,14 +67,13 @@ func init() {
 
 	// Initialize the Queries object
 	db = dbCon.New(conn)
-
 	fmt.Println("PostgreSql connected successfully...")
 
 	// Initialize controllers and routes
 	ContactController = *controllers.NewContactController(db, context.Background())
 	ContactRoutes = routes.NewRouteContact(ContactController)
 
-	UserController = *controllers.NewUserController(db, context.Background())
+	UserController = *controllers.NewUserController(db, context.Background(), jwtMaker, tokenDuration)
 	UserRoutes = routes.NewRouteUser(UserController)
 
 	GameController = *controllers.NewGameController(db, context.Background())

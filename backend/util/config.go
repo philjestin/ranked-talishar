@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/google/uuid"
 	db "github.com/philjestin/ranked-talishar/db/sqlc"
@@ -13,12 +14,14 @@ import (
 )
 
 type Config struct {
-	DbDriver         string `mapstructure:"DB_DRIVER"`
-	DbSource         string `mapstructure:"DB_SOURCE"`
-	PostgresUser     string `mapstructure:"POSTGRES_USER"`
-	PostgresPassword string `mapstructure:"POSTGRES_PASSWORD"`
-	PostgresDb       string `mapstructure:"POSTGRES_DB"`
-	ServerAddress    string `mapstructure:"SERVER_ADDRESS"`
+	DbDriver            string        `mapstructure:"DB_DRIVER"`
+	DbSource            string        `mapstructure:"DB_SOURCE"`
+	PostgresUser        string        `mapstructure:"POSTGRES_USER"`
+	PostgresPassword    string        `mapstructure:"POSTGRES_PASSWORD"`
+	PostgresDb          string        `mapstructure:"POSTGRES_DB"`
+	ServerAddress       string        `mapstructure:"SERVER_ADDRESS"`
+	TokenSymmetricKey   string        `mapstructure:"TOKEN_SYMMETRIC_KEY"`
+	AccessTokenDuration time.Duration `mapstructure:"ACCESS_TOKEN_DURATION"`
 }
 
 func LoadConfig(path string) (config Config, err error) {

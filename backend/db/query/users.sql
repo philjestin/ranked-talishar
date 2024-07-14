@@ -51,3 +51,7 @@ UPDATE users
 SET
 losses = coalesce(sqlc.narg('losses'), losses + 1)
 WHERE user_id = sqlc.arg('user_id');
+
+-- name: GetUser :one
+SELECT * FROM users
+WHERE user_name = $1 LIMIT 1;

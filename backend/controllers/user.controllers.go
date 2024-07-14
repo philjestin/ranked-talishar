@@ -3,6 +3,7 @@ package controllers
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"net/http"
 	"strconv"
 	"time"
@@ -10,18 +11,79 @@ import (
 	db "github.com/philjestin/ranked-talishar/db/sqlc"
 	"github.com/philjestin/ranked-talishar/password"
 	"github.com/philjestin/ranked-talishar/schemas"
+	"github.com/philjestin/ranked-talishar/token"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
 
 type UserController struct {
-	db  *db.Queries
-	ctx context.Context
+	db            *db.Queries
+	ctx           context.Context
+	jwtMaker      token.Maker
+	tokenDuration time.Duration
 }
 
-func NewUserController(db *db.Queries, ctx context.Context) *UserController {
-	return &UserController{db, ctx}
+func NewUserController(db *db.Queries, ctx context.Context, jwtMaker token.Maker, tokenDuration time.Duration) *UserController {
+	return &UserController{db, ctx, jwtMaker, tokenDuration}
+}
+
+func newUserResponse(user db.User) schemas.CreateUserResponse {
+	return schemas.CreateUserResponse{
+		UserName:          user.UserName,
+		UserEmail:         user.UserEmail,
+		CreatedAt:         user.CreatedAt,
+		PasswordChangedAt: user.PasswordChangedAt.Time,
+	}
+}
+
+func (cc *UserController) LoginUser(ctx *gin.Context) {
+	var req schemas.LoginUserRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"status": "Failed payload",
+			"error":  err.Error(),
+		})
+		return
+	}
+
+	user, err := cc.db.GetUser(ctx, req.UserName)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			ctx.JSON(http.StatusNotFound, gin.H{"status": "failed", "message": "Failed to find user with this username"})
+			return
+		}
+		ctx.JSON(http.StatusInternalServerError, gin.H{"status": "Failed retrieving user", "error": err.Error()})
+		return
+	}
+
+	err = password.CheckPassword(req.Password, user.HashedPassword)
+	if err != nil {
+		ctx.JSON(http.StatusUnauthorized, gin.H{
+			"status":  "failed",
+			"message": "Password does not match.",
+			"error":   err.Error(),
+		})
+		return
+	}
+
+	fmt.Println(user.UserName)
+	fmt.Println("jwtMaker in user controller", jwtMaker)
+	fmt.Println("tokenDuration in user controller", cc.tokenDuration)
+	accessToken, err := cc.jwtMaker.CreateToken(user.UserName, cc.tokenDuration)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"status": "Failed",
+			"error":  err.Error(),
+		})
+		return
+	}
+
+	rsp := schemas.LoginUserResponse{
+		AccessToken: accessToken,
+		User:        newUserResponse(user),
+	}
+	ctx.JSON(http.StatusOK, rsp)
 }
 
 // Create user handler
@@ -54,12 +116,7 @@ func (cc *UserController) CreateUser(ctx *gin.Context) {
 		return
 	}
 
-	rsp := schemas.CreateUserResponse{
-		UserName:          user.UserName,
-		UserEmail:         user.UserEmail,
-		CreatedAt:         user.CreatedAt,
-		PasswordChangedAt: user.PasswordChangedAt.Time,
-	}
+	rsp := newUserResponse(user)
 
 	ctx.JSON(http.StatusOK, gin.H{"status": "successfully created user", "user": rsp})
 }

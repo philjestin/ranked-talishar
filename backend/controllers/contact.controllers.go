@@ -9,10 +9,13 @@ import (
 
 	db "github.com/philjestin/ranked-talishar/db/sqlc"
 	"github.com/philjestin/ranked-talishar/schemas"
+	"github.com/philjestin/ranked-talishar/token"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
+
+var jwtMaker token.Maker
 
 type ContactController struct {
 	db  *db.Queries
@@ -31,6 +34,28 @@ func (cc *ContactController) CreateContact(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"status": "Failed payload", "error": err.Error()})
 		return
 	}
+
+	// // authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
+
+	// authHeader := ctx.GetHeader("Authorization")
+	// if authHeader == "" {
+	// 	ctx.JSON(http.StatusUnauthorized, gin.H{
+	// 		"status":  "failed",
+	// 		"message": "Invalid or expired token",
+	// 	})
+	// 	return
+	// }
+
+	// tokenString := strings.SplitN(authHeader, " ", 2)[1]
+	// payload, err := jwtMaker.VerifyToken(tokenString)
+	// if err != nil {
+	// 	if err == token.ErrorInvalidToken || err == token.ErrExpiredToken {
+	// 		ctx.JSON(http.StatusUnauthorized, gin.H{"status": "failed", "message": "Invalid or expired token"})
+	// 		return
+	// 	}
+	// 	ctx.JSON(http.StatusInternalServerError, gin.H{"status": "failed", "message": "Internal server error"})
+	// 	return
+	// }
 
 	now := time.Now()
 	args := &db.CreateContactParams{

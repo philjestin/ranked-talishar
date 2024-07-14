@@ -30,3 +30,13 @@ type UpdateUserResponse struct {
 	PasswordChangedAt time.Time `json:"password_changed_at"`
 	CreatedAt         time.Time `json:"created_at"`
 }
+
+type LoginUserRequest struct {
+	UserName string `json:"user_name"`
+	Password string `json:"password"`
+}
+
+type LoginUserResponse struct {
+	AccessToken string             `json:"access_token"`
+	User        CreateUserResponse `json:"user"`
+}
