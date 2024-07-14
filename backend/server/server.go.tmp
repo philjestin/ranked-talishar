@@ -1,0 +1,111 @@
+package server
+
+import (
+	"context"
+	"fmt"
+	"net/http"
+
+	"github.com/gin-gonic/gin"
+	"github.com/philjestin/ranked-talishar/controllers"
+	db "github.com/philjestin/ranked-talishar/db/sqlc"
+	"github.com/philjestin/ranked-talishar/dependencies"
+	"github.com/philjestin/ranked-talishar/routes"
+	"github.com/philjestin/ranked-talishar/token"
+	"github.com/philjestin/ranked-talishar/util"
+)
+
+var (
+	ContactController controllers.ContactController
+	ContactRoutes     routes.ContactRoutes
+	UserController    controllers.UserController
+	UserRoutes        routes.UserRoutes
+	GameController    controllers.GameController
+	GameRoutes        routes.GameRoutes
+	FormatController  controllers.FormatController
+	FormatRoutes      routes.FormatRoutes
+	HeroController    controllers.HeroController
+	HeroRoutes        routes.HeroRoutes
+	MatchController   controllers.MatchController
+	MatchRoutes       routes.MatchRoutes
+)
+
+type Server struct {
+	deps   dependencies.ServerDependencies
+	store  db.Store
+	router *gin.Engine
+}
+
+func NewServer(deps dependencies.ServerDependencies, store db.Store) (*Server, error) {
+	server := &Server{deps: deps, store: store}
+	server.setupRouter()
+	return server, nil
+}
+
+func (server *Server) Config() util.Config {
+	return server.deps.Config()
+}
+
+func (s *Server) Store() db.Store {
+	return s.deps.Store()
+}
+
+func (server *Server) TokenMaker() token.Maker {
+	return server.deps.TokenMaker()
+}
+
+func (server *Server) setupRouter() {
+
+	router := gin.Default()
+
+	// Set up the router group
+	api := router.Group("/api")
+
+	// Health check endpoint
+	router.GET("/healthcheck", func(ctx *gin.Context) {
+		ctx.JSON(http.StatusOK, gin.H{"message": "The contact API is working fine"})
+	})
+
+	// Register routes
+	ContactRoutes.ContactRoute(api)
+	UserRoutes.UserRoute(api)
+	GameRoutes.GameRoute(api)
+	FormatRoutes.FormatRoute(api)
+	HeroRoutes.HeroRoute(api)
+	MatchRoutes.MatchRoute(api)
+
+	// Handle 404 for undefined routes
+	router.NoRoute(func(ctx *gin.Context) {
+		ctx.JSON(http.StatusNotFound, gin.H{"status": "failed", "message": fmt.Sprintf("The specified route %s not found", ctx.Request.URL)})
+	})
+
+}
+
+func initControllers(server *Server, ctx context.Context) {
+	// Initialize controllers and routes
+	ContactController = *controllers.NewContactController(server, ctx)
+	ContactRoutes = routes.NewRouteContact(ContactController)
+
+	// UserController = *controllers.NewUserController(server, ctx)
+	// UserRoutes = routes.NewRouteUser(UserController)
+
+	// GameController = *controllers.NewGameController(server, ctx)
+	// GameRoutes = routes.NewRouteGame(GameController)
+
+	// FormatController = *controllers.NewFormatController(server, ctx)
+	// FormatRoutes = routes.NewRouteFormat(FormatController)
+
+	// HeroController = *controllers.NewHeroController(server, ctx)
+	// HeroRoutes = routes.NewRouteHero(HeroController)
+
+	// MatchController = *controllers.NewMatchController(server, ctx)
+	// MatchRoutes = routes.NewRouteMatch(MatchController)
+}
+
+// Start runs the HTTP server on a specific address.
+func (server *Server) Start(address string) error {
+	return server.router.Run(address)
+}
+
+func errorResponse(err error) gin.H {
+	return gin.H{"error": err.Error()}
+}

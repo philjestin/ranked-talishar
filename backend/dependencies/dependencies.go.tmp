@@ -1,0 +1,26 @@
+package dependencies
+
+import (
+	db "github.com/philjestin/ranked-talishar/db/sqlc"
+	"github.com/philjestin/ranked-talishar/token"
+	"github.com/philjestin/ranked-talishar/util"
+)
+
+type ServerDependencies interface {
+	Config() util.Config
+	TokenMaker() token.Maker
+	Store() db.Store
+}
+
+type dependencies struct {
+	config     util.Config
+	tokenMaker token.Maker
+}
+
+func (d *dependencies) Config() util.Config {
+	return d.config
+}
+
+func (d *dependencies) TokenMaker() token.Maker {
+	return d.tokenMaker
+}
