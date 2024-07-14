@@ -15,7 +15,7 @@ import (
 )
 
 type FormatController struct {
-	db *db.Queries
+	db  *db.Queries
 	ctx context.Context
 }
 
@@ -30,28 +30,28 @@ func (cc *FormatController) CreateFormat(ctx *gin.Context) {
 	if err := ctx.ShouldBindJSON(&payload); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"status": "Failed payload",
-			"error": err.Error(),
+			"error":  err.Error(),
 		})
 		return
 	}
 
 	now := time.Now()
 	args := &db.CreateFormatParams{
-		FormatName:   payload.FormatName,
-		FormatDescription:    payload.FormatDescription,
-		CreatedAt:   now,
-		UpdatedAt:   now,
+		FormatName:        payload.FormatName,
+		FormatDescription: payload.FormatDescription,
+		CreatedAt:         now,
+		UpdatedAt:         now,
 	}
 
 	contact, err := cc.db.CreateFormat(ctx, *args)
 
 	if err != nil {
-			ctx.JSON(http.StatusBadGateway, gin.H{"status": "Failed retrieving format", "error": err.Error()})
-			return
+		ctx.JSON(http.StatusBadGateway, gin.H{"status": "Failed retrieving format", "error": err.Error()})
+		return
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{
-		"status": "successfully created format",
+		"status":  "successfully created format",
 		"contact": contact,
 	})
 }
@@ -64,16 +64,16 @@ func (cc *FormatController) UpdateFormat(ctx *gin.Context) {
 	if err := ctx.ShouldBindJSON(&payload); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"status": "Failed payload",
-			"error": err.Error(),
+			"error":  err.Error(),
 		})
 	}
 
 	now := time.Now()
 	args := &db.UpdateFormatParams{
-		FormatID: 				  uuid.MustParse(formatId),
-		FormatName: 				sql.NullString{String: payload.FormatName, Valid: payload.FormatName != ""},
-		FormatDescription:  sql.NullString{String: payload.FormatDescription, Valid: payload.FormatDescription != ""},
-		UpdatedAt: 					sql.NullTime{Time: now, Valid: true},
+		FormatID:          uuid.MustParse(formatId),
+		FormatName:        sql.NullString{String: payload.FormatName, Valid: payload.FormatName != ""},
+		FormatDescription: sql.NullString{String: payload.FormatDescription, Valid: payload.FormatDescription != ""},
+		UpdatedAt:         sql.NullTime{Time: now, Valid: true},
 	}
 
 	format, err := cc.db.UpdateFormat(ctx, *args)
@@ -81,14 +81,14 @@ func (cc *FormatController) UpdateFormat(ctx *gin.Context) {
 	if err != nil {
 		if err == sql.ErrNoRows {
 			ctx.JSON(http.StatusNotFound, gin.H{
-				"status": "failed",
+				"status":  "failed",
 				"message": "Failed to retrieve format with this ID",
 			})
 			return
 		}
 		ctx.JSON(http.StatusBadGateway, gin.H{
 			"status": "Failed retrieving format",
-			"error": err.Error(),
+			"error":  err.Error(),
 		})
 		return
 	}
@@ -101,27 +101,27 @@ func (cc *FormatController) UpdateFormat(ctx *gin.Context) {
 
 // Get a single format handler
 func (cc *FormatController) GetFormatById(ctx *gin.Context) {
-    formatId := ctx.Param("formatId")
+	formatId := ctx.Param("formatId")
 
-    format, err := cc.db.GetFormatById(ctx, uuid.MustParse(formatId))
-    if err != nil {
-			if err == sql.ErrNoRows {
-					ctx.JSON(http.StatusNotFound, gin.H{
-						"status": "failed",
-						"message": "Failed to retrieve format with this ID",
-					})
-					return
-			}
-			ctx.JSON(http.StatusBadGateway, gin.H{
-				"status": "Failed retrieving format",
-				"error": err.Error(),
+	format, err := cc.db.GetFormatById(ctx, uuid.MustParse(formatId))
+	if err != nil {
+		if err == sql.ErrNoRows {
+			ctx.JSON(http.StatusNotFound, gin.H{
+				"status":  "failed",
+				"message": "Failed to retrieve format with this ID",
 			})
 			return
-    }
+		}
+		ctx.JSON(http.StatusBadGateway, gin.H{
+			"status": "Failed retrieving format",
+			"error":  err.Error(),
+		})
+		return
+	}
 
-    ctx.JSON(http.StatusOK, gin.H{
-			"status": "Successfully retrieved id",
-			"format": format,
+	ctx.JSON(http.StatusOK, gin.H{
+		"status": "Successfully retrieved id",
+		"format": format,
 	})
 }
 
@@ -141,11 +141,11 @@ func (cc *FormatController) GetAllFormats(ctx *gin.Context) {
 
 	formats, err := cc.db.ListFormats(ctx, *args)
 	if err != nil {
-			ctx.JSON(http.StatusBadGateway, gin.H{
-				"status": "Failed to retrieve formats",
-				"error": err.Error(),
-			})
-			return
+		ctx.JSON(http.StatusBadGateway, gin.H{
+			"status": "Failed to retrieve formats",
+			"error":  err.Error(),
+		})
+		return
 	}
 
 	if formats == nil {
@@ -153,28 +153,28 @@ func (cc *FormatController) GetAllFormats(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{
-		"status": "Successfully retrieved all formats",
-		"size": len(formats),
+		"status":  "Successfully retrieved all formats",
+		"size":    len(formats),
 		"formats": formats,
 	})
 }
 
 // Deleting Format handler
 func (cc *FormatController) DeleteFormatById(ctx *gin.Context) {
-    formatId := ctx.Param("formatId")
+	formatId := ctx.Param("formatId")
 
-    _, err := cc.db.GetFormatById(ctx, uuid.MustParse(formatId))
-    if err != nil {
-			if err == sql.ErrNoRows {
-				ctx.JSON(http.StatusNotFound, gin.H{
-					"status": "failed",
-					"message": "Failed to retrieve format with this ID",
-				})
-				return
+	_, err := cc.db.GetFormatById(ctx, uuid.MustParse(formatId))
+	if err != nil {
+		if err == sql.ErrNoRows {
+			ctx.JSON(http.StatusNotFound, gin.H{
+				"status":  "failed",
+				"message": "Failed to retrieve format with this ID",
+			})
+			return
 		}
 		ctx.JSON(http.StatusBadGateway, gin.H{
 			"status": "Failed retrieving format",
-			"error": err.Error(),
+			"error":  err.Error(),
 		})
 		return
 	}
@@ -183,7 +183,7 @@ func (cc *FormatController) DeleteFormatById(ctx *gin.Context) {
 	if err != nil {
 		ctx.JSON(http.StatusBadGateway, gin.H{
 			"status": "failed",
-			"error": err.Error(),
+			"error":  err.Error(),
 		})
 		return
 	}
