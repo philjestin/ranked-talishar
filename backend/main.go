@@ -116,7 +116,7 @@ func main() {
 
 	// Health check endpoint
 	router.GET("/healthcheck", func(ctx *gin.Context) {
-		ctx.JSON(http.StatusOK, gin.H{"message": "The contact API is working fine"})
+		ctx.JSON(http.StatusOK, gin.H{"message": "The ranked-talishar API is working fine"})
 	})
 
 	// Register routes

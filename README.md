@@ -14,11 +14,44 @@ gin: Is a web framework written in Go and it comes with a lot of prebuilt in fea
 
 migrate: This library helps with database migration either through incremental changes in the schema or reversal changes made in the database schema.
 
-## Reminders
-Running docker `docker-compose up`
+## Reminders and local development
+Running docker
+```bash
+docker-compose up
+```
 
-Running golang: `air`
+Running golang outside of docker:
+```bash
+air
+```
 
-Creating up/down migration files: `migrate create -ext sql -dir db/migration -seq name_of_schema`
+Creating up/down migration files:
+```bash
+migrate create -ext sql -dir db/migration -seq name_of_schema
+```
 
-SQL Queries: `sqlc generate`
+SQL Queries:
+```bash
+sqlc generate
+```
+
+## Running Locally
+
+Build the docker images
+```bash
+docker-compose build
+```
+
+Run the docker containers
+```bash
+docker-compose up
+```
+
+Verify the app works by visiting `localhost` to see the `remix-app`
+
+Verify the api is reachable
+```bash
+$ curl http://localhost/api/healthcheck
+{"message":"The ranked-talishar API is working fine"}%
+```
+
