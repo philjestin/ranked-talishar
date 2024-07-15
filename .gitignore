@@ -48,3 +48,8 @@ build/
 *.md
 
 backend/ranked-talisahr
+backend/main
+backend/go.work
+backend/go.work.sum
+
+frontend/node_modules

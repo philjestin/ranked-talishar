@@ -2,16 +2,19 @@
 FROM golang:latest
 
 # Working directory
-WORKDIR /backend
+WORKDIR /app
 
 # Copy everything at /app
-COPY . /backend
+COPY . /app
+
+# Install dependencies
+RUN go mod download
 
 # Build the go app
 RUN go build -o main .
 
 # Expose port
-EXPOSE 8080
+EXPOSE 8000
 
 # Define the command to run the app
-CMD ["./"]
+CMD ["./main"]

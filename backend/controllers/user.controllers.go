@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"fmt"
 	"net/http"
 	"strconv"
 	"time"
@@ -69,9 +68,6 @@ func (cc *UserController) LoginUser(ctx *gin.Context) {
 		return
 	}
 
-	fmt.Println(user.UserName)
-	fmt.Println("jwtMaker in user controller", jwtMaker)
-	fmt.Println("tokenDuration in user controller", cc.tokenDuration)
 	accessToken, err := cc.jwtMaker.CreateToken(user.UserName, cc.tokenDuration)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{
