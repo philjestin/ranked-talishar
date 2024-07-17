@@ -2,13 +2,34 @@ version: '3'
 services:  
   postgres:
     image: postgres:latest
+    build:
+      context: ./database
+      dockerfile: Dockerfile
     container_name: postgres
+    restart: always
+    networks:
+      new:
+        aliases:
+          - database
     ports:
       - 5432:5432
-    volumes:
-      - db:/var/lib/postgresql/data
     env_file:
       - ./backend/app.env
+    healthcheck:
+      test: pg_isready -U root -d contact_db
+      interval: 10s
+      timeout: 3s
+      retries: 5
+  migrate:
+    image: migrate/migrate:v4.15.2
+    networks:
+      - new
+    volumes:
+      - ./backend/db/migration:/migrations
+    command: ["-path", "/migrations", "-database", "postgresql://root:secret@postgres:5432/contact_db?sslmode=disable", "up"]
+    restart: on-failure
+    depends_on:
+      - postgres
   web:
     build: ./nginx
     ports:
@@ -23,6 +44,10 @@ services:
       - 8080:8080
     depends_on:
       - postgres
+    environment:
+      - DB_SOURCE=postgresql://root:secret@localhost:5432/contact_db?sslmode=disable
+    # entrypoint: ["/app/wait-for.sh", "postgres:5432", "--", "/app/start.sh"]
+    # command: ["/app/main"]
   frontend:
     build:
       context: ./frontend
@@ -31,5 +56,9 @@ services:
       - 3000:3000
     depends_on:
       - api
+
 volumes:
   db:
+   
+networks:
+  new:
