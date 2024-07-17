@@ -57,8 +57,6 @@ func init() {
 		log.Fatal("Failed to create JWT maker:", err)
 	}
 
-	fmt.Println(jwtMaker)
-
 	// Open the database connection
 	conn, err := sql.Open(config.DbDriver, config.DbSource)
 	if err != nil {
@@ -67,7 +65,7 @@ func init() {
 
 	// Initialize the Queries object
 	db = dbCon.New(conn)
-	fmt.Println("PostgreSql connected successfully...")
+	fmt.Println("PostgreSql connected successfully...", db)
 
 	// Initialize controllers and routes
 	ContactController = *controllers.NewContactController(db, context.Background())
