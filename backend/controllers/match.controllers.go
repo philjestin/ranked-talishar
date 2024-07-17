@@ -250,9 +250,9 @@ func (cc *MatchController) GetAllMatches(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{
-		"status": "Successfully retrieved all matches",
-		"size":   len(matches),
-		"matchs": matches,
+		"status":  "Successfully retrieved all matches",
+		"size":    len(matches),
+		"matches": matches,
 	})
 }
 
