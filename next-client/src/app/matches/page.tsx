@@ -13,9 +13,9 @@ async function getMatches() {
 
   const matches = await data.json();
 
-  console.log({ matches })
+  console.log({ matches });
 
-  return matches
+  return matches;
 }
 
 export default async function Matches() {
@@ -26,6 +26,5 @@ export default async function Matches() {
       <h1>Matches</h1>
       <MatchList matches={data.matches} />
     </main>
-  )
-
+  );
 }

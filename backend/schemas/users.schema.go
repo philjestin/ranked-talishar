@@ -4,6 +4,14 @@ import (
 	"time"
 )
 
+type MatchmakingUser struct {
+	UserName    string    `json:"user_name"`
+	Wins        int32     `json:"wins"`
+	Losses      int32     `json:"losses"`
+	Elo         int64     `json:"elo"`
+	QueuedSince time.Time `json:"queued_since"`
+}
+
 type CreateUser struct {
 	UserName  string `json:"user_name" binding:"required,alphanum"`
 	UserEmail string `json:"user_email" binding:"required,email"`
