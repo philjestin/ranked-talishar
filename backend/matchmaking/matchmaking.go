@@ -102,3 +102,21 @@ func (pool *MatchmakingPool) findOpponentWithinRange(player *schemas.Matchmaking
 	}
 	return nil
 }
+
+func (pool *MatchmakingPool) GetAverageQueueTime() float64 {
+	pool.mutex.Lock()
+	defer pool.mutex.Unlock()
+	totalTime := 0.0
+	for _, player := range pool.Players {
+		elapsed := time.Since(player.QueuedSince).Seconds()
+		totalTime += elapsed
+	}
+	averageWaitTime := totalTime / float64(len(pool.Players))
+	return averageWaitTime
+}
+
+func (pool *MatchmakingPool) GetTotalPlayersInPool() int {
+	pool.mutex.Lock()
+	defer pool.mutex.Unlock()
+	return len(pool.Players)
+}

@@ -73,7 +73,7 @@ func (cc *MatchController) EnterMatchmaking(ctx *gin.Context) {
 
 	fmt.Println("Args", args)
 
-	match, err := cc.db.CreateMatch(ctx, *args)
+	_, err := cc.db.CreateMatch(ctx, *args)
 
 	if err != nil {
 		ctx.JSON(http.StatusBadGateway, gin.H{"status": "Failed retrieving match", "error": err.Error()})
@@ -105,24 +105,33 @@ func (cc *MatchController) EnterMatchmaking(ctx *gin.Context) {
 
 	if format.FormatName == "Classic Constructed" {
 		matchmaking.CCPool.AddPlayer(player)
+		data := &schemas.EnterMatchmakingResponse{
+			PlayersInQueue:  len(matchmaking.CCPool.Players),
+			AverageWaitTime: matchmaking.CCPool.GetAverageQueueTime(),
+		}
 		// Probably http redirect to a pool waiting page
 		ctx.JSON(http.StatusOK, gin.H{
 			"status": "successfully joined matchmaking for Classic Constructed",
-			"match":  match,
+			"data":   data,
 		})
 	} else if format.FormatName == "Blitz" {
 		matchmaking.BlitzPool.AddPlayer(player)
+		data := &schemas.EnterMatchmakingResponse{
+			PlayersInQueue:  len(matchmaking.BlitzPool.Players),
+			AverageWaitTime: matchmaking.BlitzPool.GetAverageQueueTime(),
+		}
 		// Probably http redirect to a pool waiting page
 		ctx.JSON(http.StatusOK, gin.H{
 			"status": "successfully joined matchmaking for Blitz",
-			"match":  match,
+			"data":   data,
+		})
+	} else {
+		// Handle the case where the format is not supported
+		ctx.JSON(http.StatusUnprocessableEntity, gin.H{
+			"status": "Unsupported format for matchmaking",
 		})
 	}
 
-	// Handle the case where the format is not supported
-	ctx.JSON(http.StatusUnprocessableEntity, gin.H{
-		"status": "Unsupported format for matchmaking",
-	})
 }
 
 // Create match handler

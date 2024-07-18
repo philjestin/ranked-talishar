@@ -46,3 +46,8 @@ type EnterMatchmakingRequest struct {
 	PlayerHero     uuid.UUID `json:"player_hero" binding:"required"`
 	PlayerDecklist string    `json:"player_decklist" binding:"required"`
 }
+
+type EnterMatchmakingResponse struct {
+	PlayersInQueue  int     `json:"playersInQueue"`
+	AverageWaitTime float64 `json:"averageWaitTime"`
+}
