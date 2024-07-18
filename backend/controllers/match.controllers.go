@@ -3,6 +3,7 @@ package controllers
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"log"
 	"net/http"
 	"strconv"
@@ -70,7 +71,9 @@ func (cc *MatchController) EnterMatchmaking(ctx *gin.Context) {
 		UpdatedAt: now,
 	}
 
-	_, err := cc.db.CreateMatch(ctx, *args)
+	fmt.Println("Args", args)
+
+	match, err := cc.db.CreateMatch(ctx, *args)
 
 	if err != nil {
 		ctx.JSON(http.StatusBadGateway, gin.H{"status": "Failed retrieving match", "error": err.Error()})
@@ -99,25 +102,26 @@ func (cc *MatchController) EnterMatchmaking(ctx *gin.Context) {
 		Losses:   user.Losses,
 		Elo:      int64(user.Elo),
 	}
+
 	if format.FormatName == "Classic Constructed" {
 		matchmaking.CCPool.AddPlayer(player)
-
+		// Probably http redirect to a pool waiting page
 		ctx.JSON(http.StatusOK, gin.H{
 			"status": "successfully joined matchmaking for Classic Constructed",
+			"match":  match,
 		})
-	}
-
-	if format.FormatName == "Blitz" {
+	} else if format.FormatName == "Blitz" {
 		matchmaking.BlitzPool.AddPlayer(player)
-
+		// Probably http redirect to a pool waiting page
 		ctx.JSON(http.StatusOK, gin.H{
 			"status": "successfully joined matchmaking for Blitz",
+			"match":  match,
 		})
 	}
 
+	// Handle the case where the format is not supported
 	ctx.JSON(http.StatusUnprocessableEntity, gin.H{
-		"status": "There was a problem joining matchmaking",
-		"error":  err.Error(),
+		"status": "Unsupported format for matchmaking",
 	})
 }
 

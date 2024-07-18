@@ -13,7 +13,6 @@ import (
 	"github.com/philjestin/ranked-talishar/controllers"
 	dbCon "github.com/philjestin/ranked-talishar/db/sqlc"
 	"github.com/philjestin/ranked-talishar/listener"
-	"github.com/philjestin/ranked-talishar/matchmaking"
 	"github.com/philjestin/ranked-talishar/routes"
 	"github.com/philjestin/ranked-talishar/token"
 	"github.com/philjestin/ranked-talishar/util"
@@ -37,7 +36,6 @@ var (
 	MatchRoutes       routes.MatchRoutes
 	jwtMaker          token.Maker
 	tokenDuration     time.Duration
-	MatchmakingPool   *matchmaking.MatchmakingPool
 )
 
 func init() {
@@ -88,7 +86,6 @@ func init() {
 	MatchRoutes = routes.NewRouteMatch(MatchController)
 
 	// Initialize the matchmaking pool
-	MatchmakingPool = matchmaking.NewMatchMakingPool()
 
 	// Initialize the Gin server
 	server = gin.Default()

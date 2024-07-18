@@ -15,7 +15,6 @@ import (
 
 const createMatch = `-- name: CreateMatch :one
 INSERT INTO matches(
-  match_id,
   game_id,
   format_id,
   match_date,
@@ -29,12 +28,11 @@ INSERT INTO matches(
   created_at,
   updated_at
 ) VALUES (
-  $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13
+  $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12
 ) RETURNING match_id, game_id, match_name, player1_id, player2_id, winner_id, loser_id, player1_decklist, player2_decklist, player1_hero, player2_hero, match_date, format_id, created_at, updated_at, in_progress
 `
 
 type CreateMatchParams struct {
-	MatchID         uuid.UUID      `json:"match_id"`
 	GameID          uuid.NullUUID  `json:"game_id"`
 	FormatID        uuid.NullUUID  `json:"format_id"`
 	MatchDate       time.Time      `json:"match_date"`
@@ -51,7 +49,6 @@ type CreateMatchParams struct {
 
 func (q *Queries) CreateMatch(ctx context.Context, arg CreateMatchParams) (Match, error) {
 	row := q.queryRow(ctx, q.createMatchStmt, createMatch,
-		arg.MatchID,
 		arg.GameID,
 		arg.FormatID,
 		arg.MatchDate,

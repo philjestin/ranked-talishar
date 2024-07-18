@@ -1,6 +1,7 @@
 package matchmaking
 
 import (
+	"fmt"
 	"math"
 	"sync"
 	"time"
@@ -42,6 +43,7 @@ func (pool *MatchmakingPool) AddPlayer(player *schemas.MatchmakingUser) {
 	defer pool.mutex.Unlock()
 	player.QueuedSince = time.Now()
 	pool.Players[player.UserName] = player
+	fmt.Println("Players in pool:", len(pool.Players))
 }
 
 func (pool *MatchmakingPool) RemovePlayer(username string) *schemas.MatchmakingUser {
