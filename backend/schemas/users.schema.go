@@ -5,11 +5,12 @@ import (
 )
 
 type MatchmakingUser struct {
-	UserName    string    `json:"user_name"`
-	Wins        int32     `json:"wins"`
-	Losses      int32     `json:"losses"`
-	Elo         int64     `json:"elo"`
-	QueuedSince time.Time `json:"queued_since"`
+	UserName     string    `json:"user_name"`
+	Wins         int32     `json:"wins"`
+	Losses       int32     `json:"losses"`
+	Elo          int64     `json:"elo"`
+	QueuedSince  time.Time `json:"queued_since"`
+	QueueStopped time.Time `json:"queue_stopped"`
 }
 
 type CreateUser struct {

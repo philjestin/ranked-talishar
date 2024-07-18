@@ -38,3 +38,11 @@ type UpdateMatch struct {
 	Player1ID       uuid.UUID    `json:"player1_id"`
 	Player2ID       uuid.UUID    `json:"player2_id"`
 }
+
+type EnterMatchmakingRequest struct {
+	GameID         uuid.UUID `json:"game_id" binding:"required"`
+	FormatID       uuid.UUID `json:"format_id" binding:"required"`
+	PlayerID       uuid.UUID `json:"player_id" binding:"required"`
+	PlayerHero     uuid.UUID `json:"player_hero" binding:"required"`
+	PlayerDecklist string    `json:"player_decklist" binding:"required"`
+}

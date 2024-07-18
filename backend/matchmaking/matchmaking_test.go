@@ -57,6 +57,9 @@ func TestRemovePlayer(t *testing.T) {
 	removedPlayer := pool.RemovePlayer("philjestin")
 	require.Equal(t, player, removedPlayer, "Expected player to be removed from the pool.")
 	require.Equal(t, 0, len(pool.Players), "The length of the map of players in the pool should be 0")
+
+	removedPlayer2 := pool.RemovePlayer("billyjoel")
+	require.Nil(t, removedPlayer2, "Player doesn't exist and RemovePlayer should return nil")
 }
 
 func TestGetPlayer(t *testing.T) {

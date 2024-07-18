@@ -3,9 +3,17 @@ package matchmaking
 import (
 	"math"
 	"sync"
+	"time"
 
 	"github.com/philjestin/ranked-talishar/schemas"
 )
+
+type Matchmaking interface {
+	AddPlayer(player *schemas.MatchmakingUser)
+	RemovePlayer(username string) *schemas.MatchmakingUser
+	GetPlayer(username string) *schemas.MatchmakingUser
+	FindOpponent(player *schemas.MatchmakingUser) (*schemas.MatchmakingUser, float64)
+}
 
 type MatchmakingPool struct {
 	Players map[string]*schemas.MatchmakingUser
@@ -13,6 +21,14 @@ type MatchmakingPool struct {
 }
 
 var defaultTargetEloDifference = 15.0
+
+var CCPool MatchmakingPool
+var BlitzPool MatchmakingPool
+
+func init() {
+	CCPool = *NewMatchMakingPool()
+	BlitzPool = *NewMatchMakingPool()
+}
 
 func NewMatchMakingPool() *MatchmakingPool {
 	return &MatchmakingPool{
@@ -24,6 +40,7 @@ func NewMatchMakingPool() *MatchmakingPool {
 func (pool *MatchmakingPool) AddPlayer(player *schemas.MatchmakingUser) {
 	pool.mutex.Lock()
 	defer pool.mutex.Unlock()
+	player.QueuedSince = time.Now()
 	pool.Players[player.UserName] = player
 }
 
@@ -33,6 +50,7 @@ func (pool *MatchmakingPool) RemovePlayer(username string) *schemas.MatchmakingU
 	player, ok := pool.Players[username]
 	if ok {
 		delete(pool.Players, username)
+		player.QueueStopped = time.Now()
 		return player
 	}
 	return nil
@@ -45,7 +63,6 @@ func (pool *MatchmakingPool) GetPlayer(username string) *schemas.MatchmakingUser
 }
 
 // Iterates through players in the pool
-
 func (pool *MatchmakingPool) FindOpponent(player *schemas.MatchmakingUser) (*schemas.MatchmakingUser, float64) {
 	pool.mutex.Lock()
 	defer pool.mutex.Unlock()

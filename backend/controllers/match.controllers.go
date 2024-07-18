@@ -10,6 +10,7 @@ import (
 
 	"github.com/google/uuid"
 	db "github.com/philjestin/ranked-talishar/db/sqlc"
+	"github.com/philjestin/ranked-talishar/matchmaking"
 	"github.com/philjestin/ranked-talishar/schemas"
 
 	"github.com/gin-gonic/gin"
@@ -23,6 +24,101 @@ type MatchController struct {
 
 func NewMatchController(db *db.Queries, ctx context.Context) *MatchController {
 	return &MatchController{db, ctx}
+}
+
+func (cc *MatchController) EnterMatchmaking(ctx *gin.Context) {
+	var payload *schemas.EnterMatchmakingRequest
+
+	if err := ctx.ShouldBindJSON(&payload); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"status": "Failed payload",
+			"error":  err.Error(),
+		})
+		return
+	}
+
+	now := time.Now()
+	args := &db.CreateMatchParams{
+		MatchName: sql.NullString{String: "Ranked Matchmaking", Valid: true},
+		FormatID: func() uuid.NullUUID {
+			if payload.FormatID != (uuid.UUID{}) { // Check if payload.FormatID is a zero-value UUID
+				return uuid.NullUUID{UUID: payload.FormatID, Valid: true}
+			}
+			return uuid.NullUUID{Valid: false} // Set Valid to false if payload.FormatID is empty
+		}(),
+		Player1ID: func() uuid.NullUUID {
+			if payload.PlayerID != (uuid.UUID{}) {
+				return uuid.NullUUID{UUID: payload.PlayerID, Valid: true}
+			}
+			return uuid.NullUUID{Valid: false}
+		}(),
+		// Handle Player1Hero (similar to FormatID)
+		Player1Hero: func() uuid.NullUUID {
+			if payload.PlayerHero != (uuid.UUID{}) {
+				return uuid.NullUUID{UUID: payload.PlayerHero, Valid: true}
+			}
+			return uuid.NullUUID{Valid: false}
+		}(),
+		// Handle GameID
+		GameID: func() uuid.NullUUID {
+			if payload.GameID != (uuid.UUID{}) {
+				return uuid.NullUUID{UUID: payload.GameID, Valid: true}
+			}
+			return uuid.NullUUID{Valid: false} // Set Valid to false if empty
+		}(),
+		CreatedAt: now,
+		UpdatedAt: now,
+	}
+
+	_, err := cc.db.CreateMatch(ctx, *args)
+
+	if err != nil {
+		ctx.JSON(http.StatusBadGateway, gin.H{"status": "Failed retrieving match", "error": err.Error()})
+		return
+	}
+
+	user, err := cc.db.GetUserById(ctx, payload.PlayerID)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"status": "Failed retrieving player",
+			"error":  err.Error(),
+		})
+	}
+
+	format, err := cc.db.GetFormatById(ctx, payload.FormatID)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"status": "Failed retrieving format by format_id",
+			"error":  err.Error(),
+		})
+	}
+
+	player := &schemas.MatchmakingUser{
+		UserName: user.UserName,
+		Wins:     user.Wins,
+		Losses:   user.Losses,
+		Elo:      int64(user.Elo),
+	}
+	if format.FormatName == "Classic Constructed" {
+		matchmaking.CCPool.AddPlayer(player)
+
+		ctx.JSON(http.StatusOK, gin.H{
+			"status": "successfully joined matchmaking for Classic Constructed",
+		})
+	}
+
+	if format.FormatName == "Blitz" {
+		matchmaking.BlitzPool.AddPlayer(player)
+
+		ctx.JSON(http.StatusOK, gin.H{
+			"status": "successfully joined matchmaking for Blitz",
+		})
+	}
+
+	ctx.JSON(http.StatusUnprocessableEntity, gin.H{
+		"status": "There was a problem joining matchmaking",
+		"error":  err.Error(),
+	})
 }
 
 // Create match handler

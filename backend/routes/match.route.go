@@ -20,4 +20,5 @@ func (cr *MatchRoutes) MatchRoute(rg *gin.RouterGroup) {
 	router.PATCH("/:matchId", cr.matchController.UpdateMatch)
 	router.GET("/:matchId", cr.matchController.GetMatchById)
 	router.DELETE("/:matchId", cr.matchController.DeleteMatchById)
+	router.POST("/matchmaking", cr.matchController.EnterMatchmaking)
 }
