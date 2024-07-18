@@ -70,6 +70,8 @@ func (pool *MatchmakingPool) FindOpponent(player *schemas.MatchmakingUser) (*sch
 	defer pool.mutex.Unlock()
 	searchRange := defaultTargetEloDifference
 
+	backoff := 1 * time.Second
+
 	// Search for opponents until an opponent is found or the search reaches its limit.
 	for {
 		opponent := pool.findOpponentWithinRange(player, searchRange)
@@ -81,9 +83,15 @@ func (pool *MatchmakingPool) FindOpponent(player *schemas.MatchmakingUser) (*sch
 		if searchRange > 500 {
 			// Restart
 			searchRange = defaultTargetEloDifference
+			backoff = 1 * time.Second
 		}
-	}
 
+		pool.mutex.Unlock()
+
+		time.Sleep(backoff)
+		pool.mutex.Lock()
+		backoff *= 2
+	}
 }
 
 // Skip checking yourself

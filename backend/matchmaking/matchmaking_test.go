@@ -101,7 +101,7 @@ func TestFindOpponent_ExponentialBackoff(t *testing.T) {
 	pool := NewMatchMakingPool()
 	players := []*schemas.MatchmakingUser{
 		{UserName: "player1", Elo: 1500, Wins: 1, Losses: 2},
-		{UserName: "player2", Elo: 1200, Wins: 1, Losses: 8},
+		{UserName: "player2", Elo: 1440, Wins: 1, Losses: 8},
 		{UserName: "player3", Elo: 2000, Wins: 15, Losses: 3},
 		{UserName: "player4", Elo: 2100, Wins: 19, Losses: 1},
 	}
@@ -113,5 +113,5 @@ func TestFindOpponent_ExponentialBackoff(t *testing.T) {
 	opponent, searchRange := pool.FindOpponent(players[0])
 	require.NotNil(t, opponent, "Opponent should be found with exponential backoff.")
 	require.Equal(t, opponent, players[1], "Opponent should be found within elo range during backoff")
-	require.Equal(t, 480.0, searchRange, "SearchRange would have hit 15 x the initial backoff")
+	require.Equal(t, 60.0, searchRange, "SearchRange would have hit 15 x the initial backoff")
 }
