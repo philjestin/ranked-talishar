@@ -16,6 +16,7 @@ type Querier interface {
 	CreateGame(ctx context.Context, gameName string) (Game, error)
 	CreateHero(ctx context.Context, arg CreateHeroParams) (Hero, error)
 	CreateMatch(ctx context.Context, arg CreateMatchParams) (Match, error)
+	CreateRefreshToken(ctx context.Context, arg CreateRefreshTokenParams) (RefreshToken, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
 	DeleteContact(ctx context.Context, contactID uuid.UUID) error
 	DeleteFormat(ctx context.Context, formatID uuid.UUID) error
@@ -29,6 +30,7 @@ type Querier interface {
 	GetHeroById(ctx context.Context, heroID uuid.UUID) (Hero, error)
 	GetMatchById(ctx context.Context, matchID uuid.UUID) (Match, error)
 	GetMatchPlayers(ctx context.Context, matchID uuid.UUID) ([]GetMatchPlayersRow, error)
+	GetRefreshTokenByUserID(ctx context.Context, userID uuid.UUID) (RefreshToken, error)
 	GetUser(ctx context.Context, userName string) (User, error)
 	GetUserById(ctx context.Context, userID uuid.UUID) (User, error)
 	IncrementLosses(ctx context.Context, arg IncrementLossesParams) error
@@ -45,6 +47,7 @@ type Querier interface {
 	UpdateHero(ctx context.Context, arg UpdateHeroParams) (Hero, error)
 	UpdateMatch(ctx context.Context, arg UpdateMatchParams) (Match, error)
 	UpdatePlayerRating(ctx context.Context, arg UpdatePlayerRatingParams) error
+	UpdateRefreshToken(ctx context.Context, arg UpdateRefreshTokenParams) (RefreshToken, error)
 	UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error)
 }
 

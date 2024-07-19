@@ -39,6 +39,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.createMatchStmt, err = db.PrepareContext(ctx, createMatch); err != nil {
 		return nil, fmt.Errorf("error preparing query CreateMatch: %w", err)
 	}
+	if q.createRefreshTokenStmt, err = db.PrepareContext(ctx, createRefreshToken); err != nil {
+		return nil, fmt.Errorf("error preparing query CreateRefreshToken: %w", err)
+	}
 	if q.createUserStmt, err = db.PrepareContext(ctx, createUser); err != nil {
 		return nil, fmt.Errorf("error preparing query CreateUser: %w", err)
 	}
@@ -77,6 +80,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	}
 	if q.getMatchPlayersStmt, err = db.PrepareContext(ctx, getMatchPlayers); err != nil {
 		return nil, fmt.Errorf("error preparing query GetMatchPlayers: %w", err)
+	}
+	if q.getRefreshTokenByUserIDStmt, err = db.PrepareContext(ctx, getRefreshTokenByUserID); err != nil {
+		return nil, fmt.Errorf("error preparing query GetRefreshTokenByUserID: %w", err)
 	}
 	if q.getUserStmt, err = db.PrepareContext(ctx, getUser); err != nil {
 		return nil, fmt.Errorf("error preparing query GetUser: %w", err)
@@ -126,6 +132,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.updatePlayerRatingStmt, err = db.PrepareContext(ctx, updatePlayerRating); err != nil {
 		return nil, fmt.Errorf("error preparing query UpdatePlayerRating: %w", err)
 	}
+	if q.updateRefreshTokenStmt, err = db.PrepareContext(ctx, updateRefreshToken); err != nil {
+		return nil, fmt.Errorf("error preparing query UpdateRefreshToken: %w", err)
+	}
 	if q.updateUserStmt, err = db.PrepareContext(ctx, updateUser); err != nil {
 		return nil, fmt.Errorf("error preparing query UpdateUser: %w", err)
 	}
@@ -157,6 +166,11 @@ func (q *Queries) Close() error {
 	if q.createMatchStmt != nil {
 		if cerr := q.createMatchStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing createMatchStmt: %w", cerr)
+		}
+	}
+	if q.createRefreshTokenStmt != nil {
+		if cerr := q.createRefreshTokenStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing createRefreshTokenStmt: %w", cerr)
 		}
 	}
 	if q.createUserStmt != nil {
@@ -222,6 +236,11 @@ func (q *Queries) Close() error {
 	if q.getMatchPlayersStmt != nil {
 		if cerr := q.getMatchPlayersStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing getMatchPlayersStmt: %w", cerr)
+		}
+	}
+	if q.getRefreshTokenByUserIDStmt != nil {
+		if cerr := q.getRefreshTokenByUserIDStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getRefreshTokenByUserIDStmt: %w", cerr)
 		}
 	}
 	if q.getUserStmt != nil {
@@ -304,6 +323,11 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing updatePlayerRatingStmt: %w", cerr)
 		}
 	}
+	if q.updateRefreshTokenStmt != nil {
+		if cerr := q.updateRefreshTokenStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing updateRefreshTokenStmt: %w", cerr)
+		}
+	}
 	if q.updateUserStmt != nil {
 		if cerr := q.updateUserStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing updateUserStmt: %w", cerr)
@@ -346,83 +370,89 @@ func (q *Queries) queryRow(ctx context.Context, stmt *sql.Stmt, query string, ar
 }
 
 type Queries struct {
-	db                     DBTX
-	tx                     *sql.Tx
-	createContactStmt      *sql.Stmt
-	createFormatStmt       *sql.Stmt
-	createGameStmt         *sql.Stmt
-	createHeroStmt         *sql.Stmt
-	createMatchStmt        *sql.Stmt
-	createUserStmt         *sql.Stmt
-	deleteContactStmt      *sql.Stmt
-	deleteFormatStmt       *sql.Stmt
-	deleteGameStmt         *sql.Stmt
-	deleteHeroStmt         *sql.Stmt
-	deleteMatchStmt        *sql.Stmt
-	deleteUserStmt         *sql.Stmt
-	getContactByIdStmt     *sql.Stmt
-	getFormatByIdStmt      *sql.Stmt
-	getGameByIDStmt        *sql.Stmt
-	getHeroByIdStmt        *sql.Stmt
-	getMatchByIdStmt       *sql.Stmt
-	getMatchPlayersStmt    *sql.Stmt
-	getUserStmt            *sql.Stmt
-	getUserByIdStmt        *sql.Stmt
-	incrementLossesStmt    *sql.Stmt
-	incrementWinsStmt      *sql.Stmt
-	listContactsStmt       *sql.Stmt
-	listFormatsStmt        *sql.Stmt
-	listGamesStmt          *sql.Stmt
-	listHeroesStmt         *sql.Stmt
-	listMatchesStmt        *sql.Stmt
-	listUsersStmt          *sql.Stmt
-	updateContactStmt      *sql.Stmt
-	updateFormatStmt       *sql.Stmt
-	updateGameStmt         *sql.Stmt
-	updateHeroStmt         *sql.Stmt
-	updateMatchStmt        *sql.Stmt
-	updatePlayerRatingStmt *sql.Stmt
-	updateUserStmt         *sql.Stmt
+	db                          DBTX
+	tx                          *sql.Tx
+	createContactStmt           *sql.Stmt
+	createFormatStmt            *sql.Stmt
+	createGameStmt              *sql.Stmt
+	createHeroStmt              *sql.Stmt
+	createMatchStmt             *sql.Stmt
+	createRefreshTokenStmt      *sql.Stmt
+	createUserStmt              *sql.Stmt
+	deleteContactStmt           *sql.Stmt
+	deleteFormatStmt            *sql.Stmt
+	deleteGameStmt              *sql.Stmt
+	deleteHeroStmt              *sql.Stmt
+	deleteMatchStmt             *sql.Stmt
+	deleteUserStmt              *sql.Stmt
+	getContactByIdStmt          *sql.Stmt
+	getFormatByIdStmt           *sql.Stmt
+	getGameByIDStmt             *sql.Stmt
+	getHeroByIdStmt             *sql.Stmt
+	getMatchByIdStmt            *sql.Stmt
+	getMatchPlayersStmt         *sql.Stmt
+	getRefreshTokenByUserIDStmt *sql.Stmt
+	getUserStmt                 *sql.Stmt
+	getUserByIdStmt             *sql.Stmt
+	incrementLossesStmt         *sql.Stmt
+	incrementWinsStmt           *sql.Stmt
+	listContactsStmt            *sql.Stmt
+	listFormatsStmt             *sql.Stmt
+	listGamesStmt               *sql.Stmt
+	listHeroesStmt              *sql.Stmt
+	listMatchesStmt             *sql.Stmt
+	listUsersStmt               *sql.Stmt
+	updateContactStmt           *sql.Stmt
+	updateFormatStmt            *sql.Stmt
+	updateGameStmt              *sql.Stmt
+	updateHeroStmt              *sql.Stmt
+	updateMatchStmt             *sql.Stmt
+	updatePlayerRatingStmt      *sql.Stmt
+	updateRefreshTokenStmt      *sql.Stmt
+	updateUserStmt              *sql.Stmt
 }
 
 func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 	return &Queries{
-		db:                     tx,
-		tx:                     tx,
-		createContactStmt:      q.createContactStmt,
-		createFormatStmt:       q.createFormatStmt,
-		createGameStmt:         q.createGameStmt,
-		createHeroStmt:         q.createHeroStmt,
-		createMatchStmt:        q.createMatchStmt,
-		createUserStmt:         q.createUserStmt,
-		deleteContactStmt:      q.deleteContactStmt,
-		deleteFormatStmt:       q.deleteFormatStmt,
-		deleteGameStmt:         q.deleteGameStmt,
-		deleteHeroStmt:         q.deleteHeroStmt,
-		deleteMatchStmt:        q.deleteMatchStmt,
-		deleteUserStmt:         q.deleteUserStmt,
-		getContactByIdStmt:     q.getContactByIdStmt,
-		getFormatByIdStmt:      q.getFormatByIdStmt,
-		getGameByIDStmt:        q.getGameByIDStmt,
-		getHeroByIdStmt:        q.getHeroByIdStmt,
-		getMatchByIdStmt:       q.getMatchByIdStmt,
-		getMatchPlayersStmt:    q.getMatchPlayersStmt,
-		getUserStmt:            q.getUserStmt,
-		getUserByIdStmt:        q.getUserByIdStmt,
-		incrementLossesStmt:    q.incrementLossesStmt,
-		incrementWinsStmt:      q.incrementWinsStmt,
-		listContactsStmt:       q.listContactsStmt,
-		listFormatsStmt:        q.listFormatsStmt,
-		listGamesStmt:          q.listGamesStmt,
-		listHeroesStmt:         q.listHeroesStmt,
-		listMatchesStmt:        q.listMatchesStmt,
-		listUsersStmt:          q.listUsersStmt,
-		updateContactStmt:      q.updateContactStmt,
-		updateFormatStmt:       q.updateFormatStmt,
-		updateGameStmt:         q.updateGameStmt,
-		updateHeroStmt:         q.updateHeroStmt,
-		updateMatchStmt:        q.updateMatchStmt,
-		updatePlayerRatingStmt: q.updatePlayerRatingStmt,
-		updateUserStmt:         q.updateUserStmt,
+		db:                          tx,
+		tx:                          tx,
+		createContactStmt:           q.createContactStmt,
+		createFormatStmt:            q.createFormatStmt,
+		createGameStmt:              q.createGameStmt,
+		createHeroStmt:              q.createHeroStmt,
+		createMatchStmt:             q.createMatchStmt,
+		createRefreshTokenStmt:      q.createRefreshTokenStmt,
+		createUserStmt:              q.createUserStmt,
+		deleteContactStmt:           q.deleteContactStmt,
+		deleteFormatStmt:            q.deleteFormatStmt,
+		deleteGameStmt:              q.deleteGameStmt,
+		deleteHeroStmt:              q.deleteHeroStmt,
+		deleteMatchStmt:             q.deleteMatchStmt,
+		deleteUserStmt:              q.deleteUserStmt,
+		getContactByIdStmt:          q.getContactByIdStmt,
+		getFormatByIdStmt:           q.getFormatByIdStmt,
+		getGameByIDStmt:             q.getGameByIDStmt,
+		getHeroByIdStmt:             q.getHeroByIdStmt,
+		getMatchByIdStmt:            q.getMatchByIdStmt,
+		getMatchPlayersStmt:         q.getMatchPlayersStmt,
+		getRefreshTokenByUserIDStmt: q.getRefreshTokenByUserIDStmt,
+		getUserStmt:                 q.getUserStmt,
+		getUserByIdStmt:             q.getUserByIdStmt,
+		incrementLossesStmt:         q.incrementLossesStmt,
+		incrementWinsStmt:           q.incrementWinsStmt,
+		listContactsStmt:            q.listContactsStmt,
+		listFormatsStmt:             q.listFormatsStmt,
+		listGamesStmt:               q.listGamesStmt,
+		listHeroesStmt:              q.listHeroesStmt,
+		listMatchesStmt:             q.listMatchesStmt,
+		listUsersStmt:               q.listUsersStmt,
+		updateContactStmt:           q.updateContactStmt,
+		updateFormatStmt:            q.updateFormatStmt,
+		updateGameStmt:              q.updateGameStmt,
+		updateHeroStmt:              q.updateHeroStmt,
+		updateMatchStmt:             q.updateMatchStmt,
+		updatePlayerRatingStmt:      q.updatePlayerRatingStmt,
+		updateRefreshTokenStmt:      q.updateRefreshTokenStmt,
+		updateUserStmt:              q.updateUserStmt,
 	}
 }

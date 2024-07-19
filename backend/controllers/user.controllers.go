@@ -74,7 +74,7 @@ func (cc *UserController) SignupUser(ctx *gin.Context) {
 		return
 	}
 
-	accessToken, err := cc.jwtMaker.CreateToken(user.UserName, cc.tokenDuration)
+	tokens, err := cc.jwtMaker.CreateToken(user.UserName, cc.tokenDuration)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"status": "Failed signing user in",
@@ -83,9 +83,25 @@ func (cc *UserController) SignupUser(ctx *gin.Context) {
 		return
 	}
 
+	expiry := time.Now().Add(time.Hour * 24)
+	refreshTokenArgs := &db.CreateRefreshTokenParams{
+		RefreshToken: tokens.RefreshToken,
+		UserID:       user.UserID,
+		Expiry:       expiry,
+	}
+	_, err = cc.db.CreateRefreshToken(ctx, *refreshTokenArgs)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"status": "Failed",
+			"error":  err.Error(),
+		})
+		return
+	}
+
 	rsp := schemas.LoginUserResponse{
-		AccessToken: accessToken,
-		User:        newUserResponse(user),
+		AccessToken:  tokens.AccessToken,
+		RefreshToken: tokens.RefreshToken,
+		User:         newUserResponse(user),
 	}
 	ctx.JSON(http.StatusOK, rsp)
 }
@@ -120,7 +136,22 @@ func (cc *UserController) LoginUser(ctx *gin.Context) {
 		return
 	}
 
-	accessToken, err := cc.jwtMaker.CreateToken(user.UserName, cc.tokenDuration)
+	tokens, err := cc.jwtMaker.CreateToken(user.UserName, cc.tokenDuration)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"status": "Failed",
+			"error":  err.Error(),
+		})
+		return
+	}
+
+	expiry := time.Now().Add(time.Hour * 24)
+	refreshTokenArgs := &db.CreateRefreshTokenParams{
+		RefreshToken: tokens.RefreshToken,
+		UserID:       user.UserID,
+		Expiry:       expiry,
+	}
+	_, err = cc.db.CreateRefreshToken(ctx, *refreshTokenArgs)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"status": "Failed",
@@ -130,8 +161,9 @@ func (cc *UserController) LoginUser(ctx *gin.Context) {
 	}
 
 	rsp := schemas.LoginUserResponse{
-		AccessToken: accessToken,
-		User:        newUserResponse(user),
+		AccessToken:  tokens.AccessToken,
+		RefreshToken: tokens.RefreshToken,
+		User:         newUserResponse(user),
 	}
 	ctx.JSON(http.StatusOK, rsp)
 }

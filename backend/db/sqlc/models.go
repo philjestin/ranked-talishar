@@ -70,6 +70,13 @@ type Ranking struct {
 	LastUpdated sql.NullTime  `json:"last_updated"`
 }
 
+type RefreshToken struct {
+	ID           int32     `json:"id"`
+	UserID       uuid.UUID `json:"user_id"`
+	RefreshToken string    `json:"refresh_token"`
+	Expiry       time.Time `json:"expiry"`
+}
+
 type User struct {
 	UserID            uuid.UUID    `json:"user_id"`
 	UserName          string       `json:"user_name"`

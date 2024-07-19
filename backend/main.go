@@ -34,6 +34,8 @@ var (
 	HeroRoutes        routes.HeroRoutes
 	MatchController   controllers.MatchController
 	MatchRoutes       routes.MatchRoutes
+	RefreshController controllers.RefreshController
+	RefreshRoutes     routes.RefreshRoutes
 	jwtMaker          token.Maker
 	tokenDuration     time.Duration
 )
@@ -85,7 +87,8 @@ func init() {
 	MatchController = *controllers.NewMatchController(db, context.Background())
 	MatchRoutes = routes.NewRouteMatch(MatchController)
 
-	// Initialize the matchmaking pool
+	RefreshController = *controllers.NewRefreshController(db, context.Background(), jwtMaker, tokenDuration, secretKey)
+	RefreshRoutes = routes.NewRouteRefresh(RefreshController)
 
 	// Initialize the Gin server
 	server = gin.Default()
@@ -125,6 +128,7 @@ func main() {
 	FormatRoutes.FormatRoute(router)
 	HeroRoutes.HeroRoute(router)
 	MatchRoutes.MatchRoute(router)
+	RefreshRoutes.RefreshRoute(router)
 
 	// Handle 404 for undefined routes
 	server.NoRoute(func(ctx *gin.Context) {
