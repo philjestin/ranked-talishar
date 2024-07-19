@@ -6,6 +6,6 @@ export default function Home() {
     <main>
       <h1>Next App</h1>
       <Link href="contacts">Contacts</Link>
-      </main>
+    </main>
   );
 }
