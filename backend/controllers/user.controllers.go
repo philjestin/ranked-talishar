@@ -38,6 +38,58 @@ func newUserResponse(user db.User) schemas.CreateUserResponse {
 	}
 }
 
+func (cc *UserController) SignupUser(ctx *gin.Context) {
+	var payload *schemas.SignupUserRequest
+	if err := ctx.ShouldBindJSON(&payload); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"status": "Failed payload",
+			"error":  err.Error(),
+		})
+		return
+	}
+
+	hashedPassword, err := password.HashedPassword((payload.Password))
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"status": "Password did not match criteria",
+			"error":  err.Error(),
+		})
+	}
+
+	now := time.Now()
+	args := &db.CreateUserParams{
+		UserName:       payload.UserName,
+		UserEmail:      payload.UserEmail,
+		CreatedAt:      now,
+		UpdatedAt:      now,
+		HashedPassword: hashedPassword,
+	}
+
+	user, err := cc.db.CreateUser(ctx, *args)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"status": "Failed creating user",
+			"error":  err.Error(),
+		})
+		return
+	}
+
+	accessToken, err := cc.jwtMaker.CreateToken(user.UserName, cc.tokenDuration)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"status": "Failed signing user in",
+			"error":  err.Error(),
+		})
+		return
+	}
+
+	rsp := schemas.LoginUserResponse{
+		AccessToken: accessToken,
+		User:        newUserResponse(user),
+	}
+	ctx.JSON(http.StatusOK, rsp)
+}
+
 func (cc *UserController) LoginUser(ctx *gin.Context) {
 	var req schemas.LoginUserRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -95,7 +147,7 @@ func (cc *UserController) CreateUser(ctx *gin.Context) {
 
 	hashedPassword, err := password.HashedPassword(payload.Password)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"status": "Password failed", "error": err.Error()})
+		ctx.JSON(http.StatusBadRequest, gin.H{"status": "Password failed", "error": err.Error()})
 	}
 
 	now := time.Now()

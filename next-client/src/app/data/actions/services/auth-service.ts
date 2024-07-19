@@ -1,7 +1,7 @@
 export interface RegisterUserProps {
-  user_email: string
+  username: string
   password: string
-  user_name: string
+  email: string
 }
 
 interface LoginUserProps {
@@ -12,7 +12,7 @@ interface LoginUserProps {
 const baseUrl = "http://localhost:8000/api/users";
 
 export async function registerUserService(userData: RegisterUserProps) {
-  const url = `${baseUrl}`;
+  const url = `${baseUrl}/signup`;
   console.log({ userData });
   console.log(JSON.stringify({...userData}));
   try {
@@ -25,7 +25,10 @@ export async function registerUserService(userData: RegisterUserProps) {
       cache: "no-cache",
     });
     console.log({ response })
-    return response.json();
+    const data = await response.json();
+    console.log({ data });
+    console.log(data.body)
+    return data;
   } catch (error) {
     console.error("Error registering user: ", error);
   }

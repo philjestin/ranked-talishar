@@ -20,6 +20,7 @@ func (cr *UserRoutes) UserRoute(rg *gin.RouterGroup) {
 	router := rg.Group("users")
 	router.POST("/", cr.userController.CreateUser)
 	router.POST("/login", cr.userController.LoginUser)
+	router.POST("/signup", cr.userController.SignupUser)
 
 	authRoutes := rg.Group("/").Use(middleware.AuthMiddleware(cr.jwtMaker))
 

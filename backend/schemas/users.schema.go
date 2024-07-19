@@ -50,3 +50,9 @@ type LoginUserResponse struct {
 	AccessToken string             `json:"access_token"`
 	User        CreateUserResponse `json:"user"`
 }
+
+type SignupUserRequest struct {
+	UserName  string `json:"username"`
+	Password  string `json:"password"`
+	UserEmail string `json:"email"`
+}

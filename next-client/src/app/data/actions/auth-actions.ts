@@ -7,9 +7,9 @@ import {
 
 export async function registerUserAction(prevState: any, formData: FormData) {
   const fields = {
-    user_name: formData.get("username"),
+    username: formData.get("username"),
     password: formData.get("password"),
-    user_email: formData.get("email")
+    email: formData.get("email")
   }
 
   const responseData = await registerUserService(fields as RegisterUserProps);
