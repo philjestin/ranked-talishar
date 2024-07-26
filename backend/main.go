@@ -10,6 +10,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	_ "github.com/lib/pq"
+	"github.com/philjestin/ranked-talishar/chat"
 	"github.com/philjestin/ranked-talishar/controllers"
 	dbCon "github.com/philjestin/ranked-talishar/db/sqlc"
 	"github.com/philjestin/ranked-talishar/listener"
@@ -38,6 +39,7 @@ var (
 	RefreshRoutes     routes.RefreshRoutes
 	jwtMaker          token.Maker
 	tokenDuration     time.Duration
+	ChatRoutes        routes.ChatRoutes
 )
 
 func init() {
@@ -68,6 +70,10 @@ func init() {
 	db = dbCon.New(conn)
 	fmt.Println("PostgreSql connected successfully...")
 
+	// Start chat WS
+	hub := chat.NewHub()
+	go hub.Run()
+
 	// Initialize controllers and routes
 	ContactController = *controllers.NewContactController(db, context.Background())
 	ContactRoutes = routes.NewRouteContact(ContactController)
@@ -92,6 +98,13 @@ func init() {
 
 	// Initialize the Gin server
 	server = gin.Default()
+
+	// Serve Chat
+	server.GET("/ws", func(c *gin.Context) {
+		roomId := c.Param("roomId")
+		log.Printf("room test: %v", roomId)
+		chat.ServeWs(c, hub)
+	})
 }
 
 func main() {
@@ -129,6 +142,7 @@ func main() {
 	HeroRoutes.HeroRoute(router)
 	MatchRoutes.MatchRoute(router)
 	RefreshRoutes.RefreshRoute(router)
+	ChatRoutes.ChatRoute(router)
 
 	// Handle 404 for undefined routes
 	server.NoRoute(func(ctx *gin.Context) {
