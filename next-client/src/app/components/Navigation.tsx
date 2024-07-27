@@ -1,4 +1,5 @@
-import Image from "next/image";
+'use client';
+
 import Link from "next/link";
 import {
   Disclosure,
@@ -10,19 +11,26 @@ import {
   MenuItems,
 } from "@headlessui/react";
 import { Bars3Icon, BellIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import { usePathname } from "next/navigation";
 
-const navigation = [
-  { name: "Home", href: "#", current: true },
-  { name: "Contact", href: "/contacts", current: false },
-  { name: "Heroes", href: "#", current: false },
-  { name: "Matches", href: "#", current: false },
-];
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(" ");
 }
 
 export function Navigation() {
+
+  const pathname = usePathname();
+
+  const navigation = [
+    { name: "Home", href: "/", current: pathname === "/" },
+    { name: "Contact", href: "/contacts", current: pathname === "/contacts" },
+    { name: "Heroes", href: "/heroes", current: pathname === "/heroes" },
+    { name: "Matches", href: "/matches", current: pathname === "/matches" },
+  ];
+
+  console.log({ pathname })
+
   return (
     <Disclosure as="nav" className="bg-gray-800">
       <div className="mx-auto max-w-7xl px-2 sm:px-6 lg:px-8">
@@ -52,21 +60,24 @@ export function Navigation() {
             </div>
             <div className="hidden sm:ml-6 sm:block">
               <div className="flex space-x-4">
-                {navigation.map((item) => (
-                  <Link
-                    key={item.name}
-                    href={item.href}
-                    aria-current={item.current ? "page" : undefined}
-                    className={classNames(
-                      item.current
-                        ? "bg-gray-900 text-white"
-                        : "text-gray-300 hover:bg-gray-700 hover:text-white",
-                      "rounded-md px-3 py-2 text-sm font-medium"
-                    )}
-                  >
-                    {item.name}
-                  </Link>
-                ))}
+                {navigation.map((item) => {
+                  console.log({ item })
+                  return (
+                    <Link
+                      key={item.name}
+                      href={item.href}
+                      aria-current={item.current ? "page" : undefined}
+                      className={classNames(
+                        item.current
+                          ? "bg-gray-900 text-white"
+                          : "text-gray-300 hover:bg-gray-700 hover:text-white",
+                        "rounded-md px-3 py-2 text-sm font-medium"
+                      )}
+                    >
+                      {item.name}
+                    </Link>
+                  );
+                })}
               </div>
             </div>
           </div>

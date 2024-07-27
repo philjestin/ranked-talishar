@@ -27,6 +27,7 @@ type Querier interface {
 	DeleteHero(ctx context.Context, heroID uuid.UUID) error
 	DeleteMatch(ctx context.Context, matchID uuid.UUID) error
 	DeleteUser(ctx context.Context, userID uuid.UUID) error
+	GetAllHeroes(ctx context.Context) ([]Hero, error)
 	GetContactById(ctx context.Context, contactID uuid.UUID) (Contact, error)
 	GetConversationsByUser(ctx context.Context, userID uuid.NullUUID) ([]Conversation, error)
 	GetFormatById(ctx context.Context, formatID uuid.UUID) (Format, error)

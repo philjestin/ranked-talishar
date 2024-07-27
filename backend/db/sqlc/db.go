@@ -69,6 +69,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.deleteUserStmt, err = db.PrepareContext(ctx, deleteUser); err != nil {
 		return nil, fmt.Errorf("error preparing query DeleteUser: %w", err)
 	}
+	if q.getAllHeroesStmt, err = db.PrepareContext(ctx, getAllHeroes); err != nil {
+		return nil, fmt.Errorf("error preparing query GetAllHeroes: %w", err)
+	}
 	if q.getContactByIdStmt, err = db.PrepareContext(ctx, getContactById); err != nil {
 		return nil, fmt.Errorf("error preparing query GetContactById: %w", err)
 	}
@@ -231,6 +234,11 @@ func (q *Queries) Close() error {
 	if q.deleteUserStmt != nil {
 		if cerr := q.deleteUserStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing deleteUserStmt: %w", cerr)
+		}
+	}
+	if q.getAllHeroesStmt != nil {
+		if cerr := q.getAllHeroesStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getAllHeroesStmt: %w", cerr)
 		}
 	}
 	if q.getContactByIdStmt != nil {
@@ -427,6 +435,7 @@ type Queries struct {
 	deleteHeroStmt                *sql.Stmt
 	deleteMatchStmt               *sql.Stmt
 	deleteUserStmt                *sql.Stmt
+	getAllHeroesStmt              *sql.Stmt
 	getContactByIdStmt            *sql.Stmt
 	getConversationsByUserStmt    *sql.Stmt
 	getFormatByIdStmt             *sql.Stmt
@@ -476,6 +485,7 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		deleteHeroStmt:                q.deleteHeroStmt,
 		deleteMatchStmt:               q.deleteMatchStmt,
 		deleteUserStmt:                q.deleteUserStmt,
+		getAllHeroesStmt:              q.getAllHeroesStmt,
 		getContactByIdStmt:            q.getContactByIdStmt,
 		getConversationsByUserStmt:    q.getConversationsByUserStmt,
 		getFormatByIdStmt:             q.getFormatByIdStmt,

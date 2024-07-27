@@ -17,11 +17,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={inter.className}>
-        <AppShell>
-        {children}
-        </AppShell>
+    <html className="bg-white">
+      <body className="bg-white text-black">
+        <AppShell>{children}</AppShell>
       </body>
     </html>
   );

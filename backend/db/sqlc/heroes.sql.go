@@ -59,6 +59,40 @@ func (q *Queries) DeleteHero(ctx context.Context, heroID uuid.UUID) error {
 	return err
 }
 
+const getAllHeroes = `-- name: GetAllHeroes :many
+SELECT hero_id, hero_name, format_id, created_at, updated_at FROM HEROES
+ORDER BY format_id
+`
+
+func (q *Queries) GetAllHeroes(ctx context.Context) ([]Hero, error) {
+	rows, err := q.query(ctx, q.getAllHeroesStmt, getAllHeroes)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Hero{}
+	for rows.Next() {
+		var i Hero
+		if err := rows.Scan(
+			&i.HeroID,
+			&i.HeroName,
+			&i.FormatID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getHeroById = `-- name: GetHeroById :one
 SELECT hero_id, hero_name, format_id, created_at, updated_at FROM heroes
 WHERE hero_id = $1 LIMIT 1

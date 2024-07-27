@@ -23,7 +23,6 @@ func (cr *UserRoutes) UserRoute(rg *gin.RouterGroup) {
 	router.POST("/signup", cr.userController.SignupUser)
 
 	authRoutes := rg.Group("/").Use(middleware.AuthMiddleware(cr.jwtMaker))
-
 	authRoutes.GET("/", cr.userController.GetAllUsers)
 	authRoutes.PATCH("/:userId", cr.userController.UpdateUser)
 	authRoutes.GET("/:userId", cr.userController.GetUserById)

@@ -30,3 +30,11 @@ RETURNING *;
 -- name: DeleteHero :exec
 DELETE FROM heroes
 WHERE hero_id = $1;
+
+-- name: GetAllHeroes :many
+SELECT * FROM HEROES
+ORDER BY format_id;
+
+-- name: GetHeroesByFormatId :many
+SELECT * FROM heroes
+where format_id = $1;

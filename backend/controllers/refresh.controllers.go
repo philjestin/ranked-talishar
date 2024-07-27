@@ -36,7 +36,6 @@ func (cc *RefreshController) Refresh(ctx *gin.Context) {
 			"error":  err.Error(),
 		})
 	}
-	fmt.Println("req", req.RefreshToken)
 
 	token, err := jwt.Parse(req.RefreshToken, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
@@ -44,7 +43,6 @@ func (cc *RefreshController) Refresh(ctx *gin.Context) {
 		}
 		return []byte(cc.secretKey), nil
 	})
-	fmt.Println("token in refresh", token)
 
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{

@@ -127,6 +127,27 @@ func (cc *HeroController) GetHeroById(ctx *gin.Context) {
 
 // Retrieve all heros handler
 func (cc *HeroController) GetAllHeroes(ctx *gin.Context) {
+	heroes, err := cc.db.GetAllHeroes(ctx)
+	if err != nil {
+		ctx.JSON(http.StatusBadGateway, gin.H{
+			"status": "Failed to retrieve heroes",
+			"error":  err.Error(),
+		})
+		return
+	}
+
+	if heroes == nil {
+		heroes = []db.Hero{}
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"status": "Successfully retrieved all heroes",
+		"size":   len(heroes),
+		"heroes": heroes,
+	})
+}
+
+func (cc *HeroController) GetHeroesByPage(ctx *gin.Context) {
 	var page = ctx.DefaultQuery("page", "1")
 	var limit = ctx.DefaultQuery("limit", "10")
 
@@ -142,7 +163,7 @@ func (cc *HeroController) GetAllHeroes(ctx *gin.Context) {
 	heroes, err := cc.db.ListHeroes(ctx, *args)
 	if err != nil {
 		ctx.JSON(http.StatusBadGateway, gin.H{
-			"status": "Failed to retrieve heros",
+			"status": "Failed to retrieve heroes",
 			"error":  err.Error(),
 		})
 		return
@@ -153,7 +174,7 @@ func (cc *HeroController) GetAllHeroes(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{
-		"status": "Successfully retrieved all heros",
+		"status": "Successfully retrieved all heroes",
 		"size":   len(heroes),
 		"heroes": heroes,
 	})
