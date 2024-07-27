@@ -6,12 +6,15 @@ package db
 
 import (
 	"context"
+	"database/sql"
 
 	"github.com/google/uuid"
 )
 
 type Querier interface {
+	AddParticipant(ctx context.Context, arg AddParticipantParams) error
 	CreateContact(ctx context.Context, arg CreateContactParams) (Contact, error)
+	CreateConversation(ctx context.Context) (CreateConversationRow, error)
 	CreateFormat(ctx context.Context, arg CreateFormatParams) (Format, error)
 	CreateGame(ctx context.Context, gameName string) (Game, error)
 	CreateHero(ctx context.Context, arg CreateHeroParams) (Hero, error)
@@ -25,11 +28,13 @@ type Querier interface {
 	DeleteMatch(ctx context.Context, matchID uuid.UUID) error
 	DeleteUser(ctx context.Context, userID uuid.UUID) error
 	GetContactById(ctx context.Context, contactID uuid.UUID) (Contact, error)
+	GetConversationsByUser(ctx context.Context, userID uuid.NullUUID) ([]Conversation, error)
 	GetFormatById(ctx context.Context, formatID uuid.UUID) (Format, error)
 	GetGameByID(ctx context.Context, gameID uuid.UUID) (Game, error)
 	GetHeroById(ctx context.Context, heroID uuid.UUID) (Hero, error)
 	GetMatchById(ctx context.Context, matchID uuid.UUID) (Match, error)
 	GetMatchPlayers(ctx context.Context, matchID uuid.UUID) ([]GetMatchPlayersRow, error)
+	GetMessagesByConversation(ctx context.Context, conversationID sql.NullInt32) ([]Message, error)
 	GetRefreshTokenByUserID(ctx context.Context, userID uuid.UUID) (RefreshToken, error)
 	GetUser(ctx context.Context, userName string) (User, error)
 	GetUserById(ctx context.Context, userID uuid.UUID) (User, error)
@@ -41,6 +46,7 @@ type Querier interface {
 	ListHeroes(ctx context.Context, arg ListHeroesParams) ([]Hero, error)
 	ListMatches(ctx context.Context, arg ListMatchesParams) ([]Match, error)
 	ListUsers(ctx context.Context, arg ListUsersParams) ([]User, error)
+	SendMessage(ctx context.Context, arg SendMessageParams) (Message, error)
 	UpdateContact(ctx context.Context, arg UpdateContactParams) (Contact, error)
 	UpdateFormat(ctx context.Context, arg UpdateFormatParams) (Format, error)
 	UpdateGame(ctx context.Context, arg UpdateGameParams) (Game, error)

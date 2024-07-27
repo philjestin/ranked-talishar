@@ -21,6 +21,15 @@ type Contact struct {
 	UpdatedAt   time.Time `json:"updated_at"`
 }
 
+type Conversation struct {
+	ID                   int32          `json:"id"`
+	LastMessage          sql.NullString `json:"last_message"`
+	LastMessageTimestamp sql.NullTime   `json:"last_message_timestamp"`
+	LastMessageSenderID  uuid.NullUUID  `json:"last_message_sender_id"`
+	MessageCount         sql.NullInt32  `json:"message_count"`
+	CreatedAt            sql.NullTime   `json:"created_at"`
+}
+
 type Format struct {
 	FormatID          uuid.UUID `json:"format_id"`
 	FormatName        string    `json:"format_name"`
@@ -59,6 +68,22 @@ type Match struct {
 	CreatedAt       time.Time      `json:"created_at"`
 	UpdatedAt       time.Time      `json:"updated_at"`
 	InProgress      sql.NullBool   `json:"in_progress"`
+}
+
+type Message struct {
+	ID             int32          `json:"id"`
+	ConversationID sql.NullInt32  `json:"conversation_id"`
+	SenderID       uuid.NullUUID  `json:"sender_id"`
+	SenderUsername sql.NullString `json:"sender_username"`
+	Content        string         `json:"content"`
+	CreatedAt      sql.NullTime   `json:"created_at"`
+}
+
+type Participant struct {
+	ID             int32         `json:"id"`
+	ConversationID sql.NullInt32 `json:"conversation_id"`
+	UserID         uuid.NullUUID `json:"user_id"`
+	JoinedAt       sql.NullTime  `json:"joined_at"`
 }
 
 type Ranking struct {
