@@ -24,9 +24,17 @@ export function Navigation() {
 
   const navigation = [
     { name: "Home", href: "/", current: pathname === "/" },
-    { name: "Contact", href: "/contacts", current: pathname === "/contacts" },
-    { name: "Heroes", href: "/heroes", current: pathname === "/heroes" },
-    { name: "Matches", href: "/matches", current: pathname === "/matches" },
+    { name: "Matchmaking", href: "/matchmaking", current: pathname.includes("/matchmaking") },
+    {
+      name: "Matches",
+      href: "/matches",
+      current: pathname.includes("/matches"),
+    },
+    {
+      name: "Contact",
+      href: "/contacts",
+      current: pathname.includes("/contacts"),
+    },
   ];
 
   console.log({ pathname })
