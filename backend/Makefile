@@ -16,4 +16,10 @@ migrateup:
 migratedown:
 		migrate -path db/migration -database  "postgresql://root:secret@localhost:5432/contact_db?sslmode=disable" -verbose down
 
-.PHONY: postgres test serve sqlc migrateup migratedown
+migrateversion:
+		migrate -path db/migration -database  "postgresql://root:secret@localhost:5432/contact_db?sslmode=disable" -verbose version
+
+schema:
+		migrate create -ext sql -dir db/migration -seq
+
+.PHONY: postgres test serve sqlc migrateup migratedown schema migrateversion
