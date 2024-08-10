@@ -21,13 +21,6 @@ func NewTempleHeroController(db *db.Queries, ctx context.Context) *TempleHeroCon
 	return &TempleHeroController{db, ctx}
 }
 
-// const appTimeout = time.Second * 10
-
-// func render(ctx *gin.Context, status int, template templ.Component) error {
-// 	ctx.Status(status)
-// 	return template.Render(ctx.Request.Context(), ctx.Writer)
-// }
-
 func (cc *TempleHeroController) ViewHeros() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 
@@ -66,24 +59,6 @@ func (cc *TempleHeroController) ViewHeros() gin.HandlerFunc {
 			wg.Wait()
 			close(data)
 		}()
-
-		// component := views.Heroes(data)
-
-		// _, cancel := context.WithTimeout(context.Background(), appTimeout)
-		// defer cancel()
-
-		// heroes, err := cc.db.GetAllHeroes(ctx)
-		// if err != nil {
-		// 	ctx.JSON(http.StatusBadGateway, gin.H{
-		// 		"status": "Failed to retrieve heroes",
-		// 		"error":  err.Error(),
-		// 	})
-		// 	return
-		// }
-
-		// if heroes == nil {
-		// 	heroes = []db.Hero{}
-		// }
 
 		response := gintemplrenderer.New(ctx.Request.Context(), http.StatusOK, views.Heroes(data))
 		ctx.Render(http.StatusOK, response)
