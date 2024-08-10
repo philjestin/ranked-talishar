@@ -14,6 +14,7 @@ import (
 	"github.com/philjestin/ranked-talishar/controllers"
 	dbCon "github.com/philjestin/ranked-talishar/db/sqlc"
 	"github.com/philjestin/ranked-talishar/listener"
+	"github.com/philjestin/ranked-talishar/middleware"
 	"github.com/philjestin/ranked-talishar/routes"
 	"github.com/philjestin/ranked-talishar/token"
 	"github.com/philjestin/ranked-talishar/util"
@@ -98,6 +99,7 @@ func init() {
 
 	// Initialize the Gin server
 	server = gin.Default()
+	server.Use(middleware.CorsHandler())
 
 	// Serve Chat
 	server.GET("/ws", func(c *gin.Context) {

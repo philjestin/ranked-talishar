@@ -37,7 +37,6 @@ export function Navigation() {
     },
   ];
 
-  console.log({ pathname })
 
   return (
     <Disclosure as="nav" className="bg-gray-800">
@@ -69,7 +68,6 @@ export function Navigation() {
             <div className="hidden sm:ml-6 sm:block">
               <div className="flex space-x-4">
                 {navigation.map((item) => {
-                  console.log({ item })
                   return (
                     <Link
                       key={item.name}
