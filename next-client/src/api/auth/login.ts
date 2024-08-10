@@ -1,11 +1,12 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { signIn } from "@/auth";
-import { NextResponse } from "next/server";
+// import { signIn } from "@/auth";
+import { NextRequest, NextResponse } from "next/server";
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
+  console.log("LOGIN>TS")
   if (req.method === 'OPTIONS') {
     console.log("what the fuck")
     return res.status(200).send('ok');
@@ -13,8 +14,15 @@ export default async function handler(
 
 
   try {
-    const { email, password } = req.body;
-    await signIn("credentials", { email, password });
+    const { username, password } = req.body;
+    const response = await fetch("http://localhost:8000/api/users/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username: username, password }),
+    });
+
+      const data = await response.json();
+      console.log({ data })
 
     res.status(200).json({ success: true });
   } catch (error) {

@@ -8,17 +8,25 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/a-h/templ"
 	"github.com/gin-gonic/gin"
 	_ "github.com/lib/pq"
 	"github.com/philjestin/ranked-talishar/chat"
 	"github.com/philjestin/ranked-talishar/controllers"
 	dbCon "github.com/philjestin/ranked-talishar/db/sqlc"
+	gintemplrenderer "github.com/philjestin/ranked-talishar/gintemplaterenderer"
 	"github.com/philjestin/ranked-talishar/listener"
 	"github.com/philjestin/ranked-talishar/middleware"
 	"github.com/philjestin/ranked-talishar/routes"
 	"github.com/philjestin/ranked-talishar/token"
 	"github.com/philjestin/ranked-talishar/util"
+	"github.com/philjestin/ranked-talishar/views"
 )
+
+func render(ctx *gin.Context, status int, template templ.Component) error {
+	ctx.Status(status)
+	return template.Render(ctx.Request.Context(), ctx.Writer)
+}
 
 var (
 	server *gin.Engine
@@ -100,6 +108,11 @@ func init() {
 	// Initialize the Gin server
 	server = gin.Default()
 	server.Use(middleware.CorsHandler())
+
+	server.GET("/templ", func(c *gin.Context) {
+		r := gintemplrenderer.New(c.Request.Context(), http.StatusOK, views.Index())
+		c.Render(http.StatusOK, r)
+	})
 
 	// Serve Chat
 	server.GET("/ws", func(c *gin.Context) {
