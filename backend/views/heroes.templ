@@ -1,0 +1,64 @@
+package views
+
+import (
+    "github.com/philjestin/ranked-talishar/views/components"
+    "github.com/philjestin/ranked-talishar/schemas"
+	  "github.com/philjestin/ranked-talishar/db/sqlc"
+)
+
+
+templ Slot(name string) {
+  <slot name={ name }>
+    <div> loading { name }</div>
+  </slot>
+}
+
+templ HeroData(heroes []db.Hero) {
+    <section>
+      Hero data content is deferred
+        <ul id="heroes">
+            for _, hero := range heroes {
+                <li>
+                    {hero.HeroName}
+                </li>
+            }
+        </ul>
+    </section>
+}
+
+
+templ Heroes(data chan schemas.SlotContents) {
+    <!DOCTYPE html>
+    <html lang="en">
+        @components.Header()
+        <body>
+            <main class="min-h-screen w-full">
+                <nav class="flex w-full border border-b-zinc-200 px-4 py-4">
+                    <h3 class="text-base lg:text-lg font-medium text-center">
+                        GO Fullstack app
+                    </h3>
+                </nav>
+                @templ.Flush() {
+                  <template shadowroot="open">
+                    @Slot("heroData")
+                  </template>
+                }
+                for sc := range data {
+                  @templ.Flush() {
+                    <div slot={ sc.Name }>
+                      @sc.Contents
+                    </div>
+                  }
+                }
+            </main>
+        </body>
+        @components.Footer()
+    </html>
+    <script>
+        function reloadPage() {
+                setTimeout(function() {
+            window.location.reload();
+        }, 2000);
+        }
+    </script>
+}

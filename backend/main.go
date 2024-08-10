@@ -32,23 +32,24 @@ var (
 	server *gin.Engine
 	db     *dbCon.Queries
 
-	ContactController controllers.ContactController
-	ContactRoutes     routes.ContactRoutes
-	UserController    controllers.UserController
-	UserRoutes        routes.UserRoutes
-	GameController    controllers.GameController
-	GameRoutes        routes.GameRoutes
-	FormatController  controllers.FormatController
-	FormatRoutes      routes.FormatRoutes
-	HeroController    controllers.HeroController
-	HeroRoutes        routes.HeroRoutes
-	MatchController   controllers.MatchController
-	MatchRoutes       routes.MatchRoutes
-	RefreshController controllers.RefreshController
-	RefreshRoutes     routes.RefreshRoutes
-	jwtMaker          token.Maker
-	tokenDuration     time.Duration
-	ChatRoutes        routes.ChatRoutes
+	ContactController    controllers.ContactController
+	ContactRoutes        routes.ContactRoutes
+	UserController       controllers.UserController
+	UserRoutes           routes.UserRoutes
+	GameController       controllers.GameController
+	GameRoutes           routes.GameRoutes
+	FormatController     controllers.FormatController
+	FormatRoutes         routes.FormatRoutes
+	HeroController       controllers.HeroController
+	HeroRoutes           routes.HeroRoutes
+	MatchController      controllers.MatchController
+	MatchRoutes          routes.MatchRoutes
+	RefreshController    controllers.RefreshController
+	RefreshRoutes        routes.RefreshRoutes
+	jwtMaker             token.Maker
+	tokenDuration        time.Duration
+	ChatRoutes           routes.ChatRoutes
+	TempleHeroController controllers.TempleHeroController
 )
 
 func init() {
@@ -105,6 +106,8 @@ func init() {
 	RefreshController = *controllers.NewRefreshController(db, context.Background(), jwtMaker, tokenDuration, secretKey)
 	RefreshRoutes = routes.NewRouteRefresh(RefreshController)
 
+	TempleHeroController = *controllers.NewTempleHeroController(db, context.Background())
+
 	// Initialize the Gin server
 	server = gin.Default()
 	server.Use(middleware.CorsHandler())
@@ -113,6 +116,8 @@ func init() {
 		r := gintemplrenderer.New(c.Request.Context(), http.StatusOK, views.Index())
 		c.Render(http.StatusOK, r)
 	})
+
+	server.GET("/heroes", TempleHeroController.ViewHeros())
 
 	// Serve Chat
 	server.GET("/ws", func(c *gin.Context) {

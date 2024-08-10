@@ -1,6 +1,9 @@
 package schemas
 
-import "github.com/google/uuid"
+import (
+	"github.com/a-h/templ"
+	"github.com/google/uuid"
+)
 
 type CreateHero struct {
 	HeroName string        `json:"hero_name" binding:"required"`
@@ -10,4 +13,9 @@ type CreateHero struct {
 type UpdateHero struct {
 	HeroName string        `json:"hero_name"`
 	FormatID uuid.NullUUID `json:"format_id"`
+}
+
+type SlotContents struct {
+	Name     string
+	Contents templ.Component
 }
