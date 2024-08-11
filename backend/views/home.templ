@@ -14,18 +14,18 @@ templ Home(user schemas.CreateUserResponse) {
 						GO Fullstack app
 					</h3>
 				</nav>
+				<section>
+					<div>
+						Welcome {user.UserName}
+					</div>
+					<div>
+						email: {user.UserEmail}
+					</div>
+					<div>
+						created at:
+					</div>
+				</section>
 			</main>
-			<section>
-				<div>
-					Welcome {user.UserName}
-				</div>
-				<div>
-					email: {user.UserEmail}
-				</div>
-				<div>
-					created at:
-				</div>
-			</section>
 		</body>
 		@components.Footer()
 	</html>
