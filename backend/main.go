@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/a-h/templ"
 	"github.com/gin-gonic/gin"
 	_ "github.com/lib/pq"
 	"github.com/philjestin/ranked-talishar/chat"
@@ -22,11 +21,6 @@ import (
 	"github.com/philjestin/ranked-talishar/util"
 	"github.com/philjestin/ranked-talishar/views"
 )
-
-func render(ctx *gin.Context, status int, template templ.Component) error {
-	ctx.Status(status)
-	return template.Render(ctx.Request.Context(), ctx.Writer)
-}
 
 var (
 	server *gin.Engine
@@ -50,6 +44,8 @@ var (
 	tokenDuration        time.Duration
 	ChatRoutes           routes.ChatRoutes
 	TempleHeroController controllers.TempleHeroController
+	LoginController      controllers.LoginController
+	HomeController       controllers.HomeController
 )
 
 func init() {
@@ -108,6 +104,9 @@ func init() {
 
 	TempleHeroController = *controllers.NewTempleHeroController(db, context.Background())
 
+	LoginController = *controllers.NewLoginController(db, context.Background(), jwtMaker, tokenDuration)
+	HomeController = *controllers.NewHomeController(db, context.Background())
+
 	// Initialize the Gin server
 	server = gin.Default()
 	server.Use(middleware.CorsHandler())
@@ -117,7 +116,15 @@ func init() {
 		c.Render(http.StatusOK, r)
 	})
 
+	server.GET("/login", func(c *gin.Context) {
+		r := gintemplrenderer.New(c.Request.Context(), http.StatusOK, views.Login())
+		c.Render(http.StatusOK, r)
+	})
+	server.POST("/login", LoginController.UserLogin())
+
 	server.GET("/heroes", TempleHeroController.ViewHeros())
+
+	server.GET("/home", HomeController.Home())
 
 	// Serve Chat
 	server.GET("/ws", func(c *gin.Context) {

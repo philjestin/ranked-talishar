@@ -10,7 +10,7 @@ import templruntime "github.com/a-h/templ/runtime"
 
 import "github.com/philjestin/ranked-talishar/views/components"
 
-func Index() templ.Component {
+func Login() templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
@@ -36,7 +36,7 @@ func Index() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<body><main class=\"min-h-screen w-full\"><nav class=\"flex w-full border border-b-zinc-200 px-4 py-4\"><h3 class=\"text-base lg:text-lg font-medium text-center\">GO Fullstack app</h3></nav></main></body>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<body><main class=\"min-h-screen w-full\"><form action=\"/login\" method=\"post\" id=\"login-form\"><label for=\"username\">Username</label> <input name=\"username\" id=\"username\" type=\"text\" placeholder=\"Username\" required> <label for=\"password\">Password</label> <input name=\"password\" id=\"password\" type=\"password\" placeholder=\"Password\" required> <button id=\"login-button\" type=\"submit\">Login</button></form></main></body>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

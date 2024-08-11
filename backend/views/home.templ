@@ -1,8 +1,9 @@
 package views
 
 import "github.com/philjestin/ranked-talishar/views/components"
+import "github.com/philjestin/ranked-talishar/schemas"
 
-templ Index() {
+templ Home(user schemas.CreateUserResponse) {
 	<!DOCTYPE html>
 	<html lang="en">
 		@components.Header()
@@ -14,6 +15,17 @@ templ Index() {
 					</h3>
 				</nav>
 			</main>
+			<section>
+				<div>
+					Welcome {user.UserName}
+				</div>
+				<div>
+					email: {user.UserEmail}
+				</div>
+				<div>
+					created at:
+				</div>
+			</section>
 		</body>
 		@components.Footer()
 	</html>

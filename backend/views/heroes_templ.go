@@ -9,7 +9,7 @@ import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
 import (
-	"github.com/philjestin/ranked-talishar/db/sqlc"
+	db "github.com/philjestin/ranked-talishar/db/sqlc"
 	"github.com/philjestin/ranked-talishar/schemas"
 	"github.com/philjestin/ranked-talishar/views/components"
 )
@@ -39,7 +39,7 @@ func Slot(name string) templ.Component {
 		var templ_7745c5c3_Var2 string
 		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(name)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/heroes.templ`, Line: 11, Col: 19}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/heroes.templ`, Line: 10, Col: 18}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 		if templ_7745c5c3_Err != nil {
@@ -52,7 +52,7 @@ func Slot(name string) templ.Component {
 		var templ_7745c5c3_Var3 string
 		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(name)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/heroes.templ`, Line: 12, Col: 24}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/heroes.templ`, Line: 11, Col: 21}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 		if templ_7745c5c3_Err != nil {
@@ -96,7 +96,7 @@ func HeroData(heroes []db.Hero) templ.Component {
 			var templ_7745c5c3_Var5 string
 			templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(hero.HeroName)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/heroes.templ`, Line: 22, Col: 34}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/heroes.templ`, Line: 21, Col: 20}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 			if templ_7745c5c3_Err != nil {
@@ -195,7 +195,7 @@ func Heroes(data chan schemas.SlotContents) templ.Component {
 				var templ_7745c5c3_Var9 string
 				templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(sc.Name)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/heroes.templ`, Line: 48, Col: 39}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/heroes.templ`, Line: 46, Col: 25}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 				if templ_7745c5c3_Err != nil {
