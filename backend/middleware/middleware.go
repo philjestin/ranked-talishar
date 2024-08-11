@@ -49,6 +49,13 @@ func AuthMiddleware(tokenMaker token.Maker) gin.HandlerFunc {
 			return
 		}
 
+		// user, err := data.UserModel.GetForToken(accessToken)
+		// if err != nil {
+		// 	handleUnauthorized(ctx, err)
+		// }
+
+		// ContextSetUser(user)
+
 		ctx.Set(AuthorizationPayloadKey, payload)
 		ctx.Next()
 	}

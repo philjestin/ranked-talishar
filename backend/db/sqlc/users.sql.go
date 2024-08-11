@@ -68,9 +68,47 @@ func (q *Queries) DeleteUser(ctx context.Context, userID uuid.UUID) error {
 	return err
 }
 
+const getForToken = `-- name: GetForToken :one
+select users.user_id, users.created_at, users.user_email, users.user_name, users.hashed_password, users.password_changed_at
+FROM users
+INNER JOIN refresh_tokens
+on users.user_id = refresh_tokens.user_id
+WHERE refresh_tokens.refresh_token = $1
+AND refresh_tokens.expiry = $2
+`
+
+type GetForTokenParams struct {
+	RefreshToken string    `json:"refresh_token"`
+	Expiry       time.Time `json:"expiry"`
+}
+
+type GetForTokenRow struct {
+	UserID            uuid.UUID    `json:"user_id"`
+	CreatedAt         time.Time    `json:"created_at"`
+	UserEmail         string       `json:"user_email"`
+	UserName          string       `json:"user_name"`
+	HashedPassword    string       `json:"hashed_password"`
+	PasswordChangedAt sql.NullTime `json:"password_changed_at"`
+}
+
+func (q *Queries) GetForToken(ctx context.Context, arg GetForTokenParams) (GetForTokenRow, error) {
+	row := q.queryRow(ctx, q.getForTokenStmt, getForToken, arg.RefreshToken, arg.Expiry)
+	var i GetForTokenRow
+	err := row.Scan(
+		&i.UserID,
+		&i.CreatedAt,
+		&i.UserEmail,
+		&i.UserName,
+		&i.HashedPassword,
+		&i.PasswordChangedAt,
+	)
+	return i, err
+}
+
 const getUser = `-- name: GetUser :one
 SELECT user_id, user_name, user_email, created_at, updated_at, wins, losses, ties, elo, hashed_password, password_changed_at FROM users
-WHERE user_name = $1 LIMIT 1
+WHERE user_name = $1
+LIMIT 1
 `
 
 func (q *Queries) GetUser(ctx context.Context, userName string) (User, error) {
