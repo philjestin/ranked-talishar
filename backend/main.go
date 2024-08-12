@@ -128,13 +128,7 @@ func init() {
 
 	server.GET("/heroes", TempleHeroController.ViewHeros())
 
-	// server.GET("/home", HomeController.Home()).Use(middleware.AuthMiddleware(jwtMaker))
-
-	authorized := server.Group("/home")
-	authorized.Use(middleware.AuthMiddleware(jwtMaker))
-	{
-		authorized.GET("/", HomeController.Home())
-	}
+	server.GET("/home", HomeController.Home())
 
 	// Serve Chat
 	server.GET("/ws", func(c *gin.Context) {

@@ -20,14 +20,7 @@ const (
 
 func AuthMiddleware(tokenMaker token.Maker) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-
-		fmt.Println("Inside auth middleware")
-
-		authorizationHeader, _ := ctx.Cookie("ranked_talishar_cookie")
-		// fmt.Println(cookie)
-
-		// authorizationHeader := ctx.GetHeader(AuthorizationHeaderKey)
-		fmt.Println(authorizationHeader, "authorization header")
+		authorizationHeader := ctx.GetHeader(AuthorizationHeaderKey)
 
 		if len(authorizationHeader) == 0 {
 			err := errors.New("authorization header is not provided")
@@ -36,7 +29,6 @@ func AuthMiddleware(tokenMaker token.Maker) gin.HandlerFunc {
 		}
 
 		fields := strings.Fields(authorizationHeader)
-		fmt.Println("fields", fields)
 		if len(fields) < 2 {
 			err := errors.New("invalid authorization header format")
 			handleUnauthorized(ctx, err)
@@ -57,18 +49,6 @@ func AuthMiddleware(tokenMaker token.Maker) gin.HandlerFunc {
 			handleUnauthorized(ctx, err)
 			return
 		}
-
-		fmt.Println("accesstoken", accessToken)
-
-		fmt.Println("payload ", payload)
-
-		// var userModel *data.UserModel
-		// user, err := userModel.GetForToken(accessToken)
-		// if err != nil {
-		// 	handleUnauthorized(ctx, err)
-		// }
-
-		// ctx.Set("user", user)
 
 		ctx.Set(AuthorizationPayloadKey, payload)
 		ctx.Next()

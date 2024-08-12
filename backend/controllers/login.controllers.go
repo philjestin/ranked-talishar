@@ -3,7 +3,6 @@ package controllers
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"net/http"
 	"time"
 
@@ -30,9 +29,6 @@ func NewLoginController(db *db.Queries, ctx context.Context, jwtMaker token.Make
 }
 
 func (cc *LoginController) UserLogin() gin.HandlerFunc {
-
-	fmt.Println("before return func")
-
 	return func(ctx *gin.Context) {
 
 		username := ctx.PostForm("username")
@@ -88,19 +84,7 @@ func (cc *LoginController) UserLogin() gin.HandlerFunc {
 		if err != nil {
 			ctx.SetCookie("ranked_talishar_cookie", tokens.AccessToken, 6400, "/", "localhost", false, true)
 		}
-		ctx.Header("authorization", tokens.AccessToken)
-		ctx.Header("bearer", tokens.AccessToken)
 
-		ctx.Request.Header.Set("authorization", tokens.AccessToken)
-		ctx.Request.Header.Set("bearer", tokens.AccessToken)
-		// authHeader = ctx.Head
-
-		testHeader := ctx.GetHeader("authorization")
-
-		fmt.Println("set cookie redirecting now")
-
-		fmt.Println(testHeader)
-
-		ctx.Redirect(http.StatusFound, "/home?fresh=true")
+		ctx.Redirect(http.StatusFound, "/home")
 	}
 }

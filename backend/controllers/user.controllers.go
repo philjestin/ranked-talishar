@@ -147,7 +147,7 @@ func (cc *UserController) LoginUser(ctx *gin.Context) {
 
 	expiry := time.Now().Add(time.Hour * 24)
 	refreshTokenArgs := &db.CreateRefreshTokenParams{
-		RefreshToken: tokens.AccessToken,
+		RefreshToken: tokens.RefreshToken,
 		UserID:       user.UserID,
 		Expiry:       expiry,
 	}
