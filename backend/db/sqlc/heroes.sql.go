@@ -111,6 +111,40 @@ func (q *Queries) GetHeroById(ctx context.Context, heroID uuid.UUID) (Hero, erro
 	return i, err
 }
 
+const getHeroesByFormatId = `-- name: GetHeroesByFormatId :many
+SELECT hero_id, hero_name, format_id, created_at, updated_at FROM heroes
+where format_id = $1
+`
+
+func (q *Queries) GetHeroesByFormatId(ctx context.Context, formatID uuid.NullUUID) ([]Hero, error) {
+	rows, err := q.query(ctx, q.getHeroesByFormatIdStmt, getHeroesByFormatId, formatID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Hero{}
+	for rows.Next() {
+		var i Hero
+		if err := rows.Scan(
+			&i.HeroID,
+			&i.HeroName,
+			&i.FormatID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listHeroes = `-- name: ListHeroes :many
 SELECT hero_id, hero_name, format_id, created_at, updated_at FROM heroes
 ORDER BY hero_id

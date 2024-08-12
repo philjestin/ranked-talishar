@@ -27,4 +27,5 @@ func (cr *UserRoutes) UserRoute(rg *gin.RouterGroup) {
 	authRoutes.PATCH("/:userId", cr.userController.UpdateUser)
 	authRoutes.GET("/:userId", cr.userController.GetUserById)
 	authRoutes.DELETE("/:userId", cr.userController.DeleteUserById)
+
 }

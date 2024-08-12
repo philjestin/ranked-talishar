@@ -13,33 +13,39 @@ import (
 	"github.com/philjestin/ranked-talishar/chat"
 	"github.com/philjestin/ranked-talishar/controllers"
 	dbCon "github.com/philjestin/ranked-talishar/db/sqlc"
+	gintemplrenderer "github.com/philjestin/ranked-talishar/gintemplaterenderer"
 	"github.com/philjestin/ranked-talishar/listener"
+	"github.com/philjestin/ranked-talishar/middleware"
 	"github.com/philjestin/ranked-talishar/routes"
 	"github.com/philjestin/ranked-talishar/token"
 	"github.com/philjestin/ranked-talishar/util"
+	"github.com/philjestin/ranked-talishar/views"
 )
 
 var (
 	server *gin.Engine
 	db     *dbCon.Queries
 
-	ContactController controllers.ContactController
-	ContactRoutes     routes.ContactRoutes
-	UserController    controllers.UserController
-	UserRoutes        routes.UserRoutes
-	GameController    controllers.GameController
-	GameRoutes        routes.GameRoutes
-	FormatController  controllers.FormatController
-	FormatRoutes      routes.FormatRoutes
-	HeroController    controllers.HeroController
-	HeroRoutes        routes.HeroRoutes
-	MatchController   controllers.MatchController
-	MatchRoutes       routes.MatchRoutes
-	RefreshController controllers.RefreshController
-	RefreshRoutes     routes.RefreshRoutes
-	jwtMaker          token.Maker
-	tokenDuration     time.Duration
-	ChatRoutes        routes.ChatRoutes
+	ContactController    controllers.ContactController
+	ContactRoutes        routes.ContactRoutes
+	UserController       controllers.UserController
+	UserRoutes           routes.UserRoutes
+	GameController       controllers.GameController
+	GameRoutes           routes.GameRoutes
+	FormatController     controllers.FormatController
+	FormatRoutes         routes.FormatRoutes
+	HeroController       controllers.HeroController
+	HeroRoutes           routes.HeroRoutes
+	MatchController      controllers.MatchController
+	MatchRoutes          routes.MatchRoutes
+	RefreshController    controllers.RefreshController
+	RefreshRoutes        routes.RefreshRoutes
+	jwtMaker             token.Maker
+	tokenDuration        time.Duration
+	ChatRoutes           routes.ChatRoutes
+	TempleHeroController controllers.TempleHeroController
+	LoginController      controllers.LoginController
+	HomeController       controllers.HomeController
 )
 
 func init() {
@@ -96,8 +102,29 @@ func init() {
 	RefreshController = *controllers.NewRefreshController(db, context.Background(), jwtMaker, tokenDuration, secretKey)
 	RefreshRoutes = routes.NewRouteRefresh(RefreshController)
 
+	TempleHeroController = *controllers.NewTempleHeroController(db, context.Background())
+
+	LoginController = *controllers.NewLoginController(db, context.Background(), jwtMaker, tokenDuration)
+	HomeController = *controllers.NewHomeController(db, context.Background())
+
 	// Initialize the Gin server
 	server = gin.Default()
+	server.Use(middleware.CorsHandler())
+
+	server.GET("/templ", func(c *gin.Context) {
+		r := gintemplrenderer.New(c.Request.Context(), http.StatusOK, views.Index())
+		c.Render(http.StatusOK, r)
+	})
+
+	server.GET("/login", func(c *gin.Context) {
+		r := gintemplrenderer.New(c.Request.Context(), http.StatusOK, views.Login())
+		c.Render(http.StatusOK, r)
+	})
+	server.POST("/login", LoginController.UserLogin())
+
+	server.GET("/heroes", TempleHeroController.ViewHeros())
+
+	server.GET("/home", HomeController.Home())
 
 	// Serve Chat
 	server.GET("/ws", func(c *gin.Context) {

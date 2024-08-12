@@ -78,6 +78,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.getConversationsByUserStmt, err = db.PrepareContext(ctx, getConversationsByUser); err != nil {
 		return nil, fmt.Errorf("error preparing query GetConversationsByUser: %w", err)
 	}
+	if q.getForTokenStmt, err = db.PrepareContext(ctx, getForToken); err != nil {
+		return nil, fmt.Errorf("error preparing query GetForToken: %w", err)
+	}
 	if q.getFormatByIdStmt, err = db.PrepareContext(ctx, getFormatById); err != nil {
 		return nil, fmt.Errorf("error preparing query GetFormatById: %w", err)
 	}
@@ -86,6 +89,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	}
 	if q.getHeroByIdStmt, err = db.PrepareContext(ctx, getHeroById); err != nil {
 		return nil, fmt.Errorf("error preparing query GetHeroById: %w", err)
+	}
+	if q.getHeroesByFormatIdStmt, err = db.PrepareContext(ctx, getHeroesByFormatId); err != nil {
+		return nil, fmt.Errorf("error preparing query GetHeroesByFormatId: %w", err)
 	}
 	if q.getMatchByIdStmt, err = db.PrepareContext(ctx, getMatchById); err != nil {
 		return nil, fmt.Errorf("error preparing query GetMatchById: %w", err)
@@ -251,6 +257,11 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing getConversationsByUserStmt: %w", cerr)
 		}
 	}
+	if q.getForTokenStmt != nil {
+		if cerr := q.getForTokenStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getForTokenStmt: %w", cerr)
+		}
+	}
 	if q.getFormatByIdStmt != nil {
 		if cerr := q.getFormatByIdStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing getFormatByIdStmt: %w", cerr)
@@ -264,6 +275,11 @@ func (q *Queries) Close() error {
 	if q.getHeroByIdStmt != nil {
 		if cerr := q.getHeroByIdStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing getHeroByIdStmt: %w", cerr)
+		}
+	}
+	if q.getHeroesByFormatIdStmt != nil {
+		if cerr := q.getHeroesByFormatIdStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getHeroesByFormatIdStmt: %w", cerr)
 		}
 	}
 	if q.getMatchByIdStmt != nil {
@@ -438,9 +454,11 @@ type Queries struct {
 	getAllHeroesStmt              *sql.Stmt
 	getContactByIdStmt            *sql.Stmt
 	getConversationsByUserStmt    *sql.Stmt
+	getForTokenStmt               *sql.Stmt
 	getFormatByIdStmt             *sql.Stmt
 	getGameByIDStmt               *sql.Stmt
 	getHeroByIdStmt               *sql.Stmt
+	getHeroesByFormatIdStmt       *sql.Stmt
 	getMatchByIdStmt              *sql.Stmt
 	getMatchPlayersStmt           *sql.Stmt
 	getMessagesByConversationStmt *sql.Stmt
@@ -488,9 +506,11 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		getAllHeroesStmt:              q.getAllHeroesStmt,
 		getContactByIdStmt:            q.getContactByIdStmt,
 		getConversationsByUserStmt:    q.getConversationsByUserStmt,
+		getForTokenStmt:               q.getForTokenStmt,
 		getFormatByIdStmt:             q.getFormatByIdStmt,
 		getGameByIDStmt:               q.getGameByIDStmt,
 		getHeroByIdStmt:               q.getHeroByIdStmt,
+		getHeroesByFormatIdStmt:       q.getHeroesByFormatIdStmt,
 		getMatchByIdStmt:              q.getMatchByIdStmt,
 		getMatchPlayersStmt:           q.getMatchPlayersStmt,
 		getMessagesByConversationStmt: q.getMessagesByConversationStmt,
