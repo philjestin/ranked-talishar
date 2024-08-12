@@ -1,0 +1,61 @@
+package components
+
+templ Chat() {
+	<div hx-ext="ws" ws-connect="http://localhost:8000/wss">
+	Websocket status: <span id="status"></span>
+		<div id="notifications" hs-swap-oob="beforehand">
+			New Message received
+		</div>
+		<div id="chat_room" hs-swap-oob="morphdom"></div>
+		<form id="form" ws-send  hx-on::after-request="this.reset()">
+			<input type="hidden" name="username" value=" {{ .username}}" />
+			// <input name="chat_message">
+				<div class="is-flex is-align-items-center">
+					<div class="field is-flex-grow-1 mr-4">
+						<textarea rows="2" name="message" placeholder="Say something" required></textarea>
+					</div>
+					<div class="field">
+						<button type="submit" id="send"><i class="fa-solid fa-paper-plane"></i>&nbsp;SEND</button>
+					</div>
+				</div>
+		</form>
+	</div>
+	<script type="text/javascript" defer>
+		let status = document.getElementById('status');
+
+		let socket;
+		let elt;
+
+		document.addEventListener("DOMContentLoaded", function() {
+			console.log("DOMContentLoaded")
+			const socket = new WebSocket("http://localhost:8000/ws");
+			socket.onopen = (event) => {
+				status.innerText = "Connected from new websocket"
+			}
+		});
+
+		console.log("test")
+
+		document.addEventListener("visibilitychange", function(evt) {
+			console.log('visibilitychange', document.visibilityState);
+			if (socket) {
+				socket.send(document.visibilityState, elt);
+			}
+		});
+
+		document.body.addEventListener('htmx:wsOpen', function(evt) {
+			console.log('connected');
+			
+			socket = evt.detail.socketWrapper;
+			elt = evt.detail.elt;
+
+			status.innerText = 'Connected';
+			status.setAttribute('data-status', 'connected');
+		});
+		document.body.addEventListener('htmx:wsClose', function(evt) {
+			console.log('disconnected');
+			status.innerText = 'Disconnected';
+			status.setAttribute('data-status', 'disconnected');
+		});
+	</script>
+}
