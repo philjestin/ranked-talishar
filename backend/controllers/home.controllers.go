@@ -3,6 +3,7 @@ package controllers
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -24,6 +25,10 @@ func NewHomeController(db *db.Queries, ctx context.Context) *HomeController {
 
 func (cc *HomeController) Home() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
+
+		currentUser := ctx.Value("authorization_payload")
+
+		fmt.Println(currentUser, " current-user / authorization_payload")
 
 		user, err := cc.db.GetUserById(ctx, uuid.MustParse("90e8a5ec-da6a-4828-a095-b1c0555ad049"))
 		if err != nil {

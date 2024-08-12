@@ -14,6 +14,7 @@ import (
 	"github.com/philjestin/ranked-talishar/controllers"
 	dbCon "github.com/philjestin/ranked-talishar/db/sqlc"
 	gintemplrenderer "github.com/philjestin/ranked-talishar/gintemplaterenderer"
+	"github.com/philjestin/ranked-talishar/internal/data"
 	"github.com/philjestin/ranked-talishar/listener"
 	"github.com/philjestin/ranked-talishar/middleware"
 	"github.com/philjestin/ranked-talishar/routes"
@@ -46,6 +47,7 @@ var (
 	TempleHeroController controllers.TempleHeroController
 	LoginController      controllers.LoginController
 	HomeController       controllers.HomeController
+	UserModel            data.UserModel
 )
 
 func init() {
@@ -94,7 +96,7 @@ func init() {
 	FormatRoutes = routes.NewRouteFormat(FormatController)
 
 	HeroController = *controllers.NewHeroController(db, context.Background())
-	HeroRoutes = routes.NewRouteHero(HeroController)
+	HeroRoutes = routes.NewRouteHero(HeroController, jwtMaker)
 
 	MatchController = *controllers.NewMatchController(db, context.Background())
 	MatchRoutes = routes.NewRouteMatch(MatchController)
@@ -106,6 +108,8 @@ func init() {
 
 	LoginController = *controllers.NewLoginController(db, context.Background(), jwtMaker, tokenDuration)
 	HomeController = *controllers.NewHomeController(db, context.Background())
+
+	UserModel = *data.UserModelController(db, context.Background())
 
 	// Initialize the Gin server
 	server = gin.Default()
@@ -124,7 +128,13 @@ func init() {
 
 	server.GET("/heroes", TempleHeroController.ViewHeros())
 
-	server.GET("/home", HomeController.Home())
+	// server.GET("/home", HomeController.Home()).Use(middleware.AuthMiddleware(jwtMaker))
+
+	authorized := server.Group("/home")
+	authorized.Use(middleware.AuthMiddleware(jwtMaker))
+	{
+		authorized.GET("/", HomeController.Home())
+	}
 
 	// Serve Chat
 	server.GET("/ws", func(c *gin.Context) {

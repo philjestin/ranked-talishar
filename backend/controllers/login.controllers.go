@@ -73,6 +73,7 @@ func (cc *LoginController) UserLogin() gin.HandlerFunc {
 			UserID:       user.UserID,
 			Expiry:       expiry,
 		}
+
 		_, err = cc.db.CreateRefreshToken(ctx, *refreshTokenArgs)
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, gin.H{
@@ -87,8 +88,18 @@ func (cc *LoginController) UserLogin() gin.HandlerFunc {
 		if err != nil {
 			ctx.SetCookie("ranked_talishar_cookie", tokens.AccessToken, 6400, "/", "localhost", false, true)
 		}
+		ctx.Header("authorization", tokens.AccessToken)
+		ctx.Header("bearer", tokens.AccessToken)
+
+		ctx.Request.Header.Set("authorization", tokens.AccessToken)
+		ctx.Request.Header.Set("bearer", tokens.AccessToken)
+		// authHeader = ctx.Head
+
+		testHeader := ctx.GetHeader("authorization")
 
 		fmt.Println("set cookie redirecting now")
+
+		fmt.Println(testHeader)
 
 		ctx.Redirect(http.StatusFound, "/home?fresh=true")
 	}

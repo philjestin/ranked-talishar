@@ -3,13 +3,20 @@ package data
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"time"
 
+	"github.com/google/uuid"
 	db "github.com/philjestin/ranked-talishar/db/sqlc"
 )
 
 type UserModel struct {
-	db *db.Queries
+	db  *db.Queries
+	ctx context.Context
+}
+
+func UserModelController(db *db.Queries, ctx context.Context) *UserModel {
+	return &UserModel{db, ctx}
 }
 
 // Declare a new AnonymousUser variable.
@@ -19,7 +26,7 @@ type User struct {
 	UserName  string    `json:"user_name"`
 	UserEmail string    `json:"user_email"`
 	Password  string    `json:"password"`
-	UserId    string    `json:"user_id"`
+	UserId    uuid.UUID `json:"user_id"`
 	CreatedAt time.Time `json:"created_at"`
 }
 
@@ -50,7 +57,7 @@ func (m UserModel) Insert(user db.User) error {
 	return nil
 }
 
-func (m UserModel) GetForToken(tokenPlaintext string) (*db.GetForTokenRow, error) {
+func (cc *UserModel) GetForToken(tokenPlaintext string) (*User, error) {
 	// Calculate the SHA-256 hash of the plaintext token provided by the client.
 	// Remember that this returns a byte *array* with length 32, not a slice.
 	// tokenHash := sha256.Sum256([]byte(tokenPlaintext))
@@ -58,12 +65,16 @@ func (m UserModel) GetForToken(tokenPlaintext string) (*db.GetForTokenRow, error
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	args := &db.GetForTokenParams{
-		RefreshToken: tokenPlaintext,
-		Expiry:       time.Now(),
-	}
+	// args := &db.GetForTokenParams{
+	// 	RefreshToken: tokenPlaintext,
+	// 	// Expiry:       time.Now(),
+	// }
 
-	user, err := m.db.GetForToken(ctx, *args)
+	fmt.Println("args inside of GetForToken", tokenPlaintext)
+
+	user, err := cc.db.GetForToken(ctx, tokenPlaintext)
+
+	fmt.Println("user", user)
 
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -72,5 +83,13 @@ func (m UserModel) GetForToken(tokenPlaintext string) (*db.GetForTokenRow, error
 		return nil, err
 	}
 
-	return &user, nil
+	res := User{
+		UserName:  user.UserName,
+		UserEmail: user.UserEmail,
+		CreatedAt: user.CreatedAt,
+		UserId:    user.UserID,
+		Password:  user.HashedPassword,
+	}
+
+	return &res, nil
 }

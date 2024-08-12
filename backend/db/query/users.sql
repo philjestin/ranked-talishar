@@ -62,5 +62,4 @@ select users.user_id, users.created_at, users.user_email, users.user_name, users
 FROM users
 INNER JOIN refresh_tokens
 on users.user_id = refresh_tokens.user_id
-WHERE refresh_tokens.refresh_token = $1
-AND refresh_tokens.expiry = $2;
+WHERE refresh_tokens.refresh_token = $1;

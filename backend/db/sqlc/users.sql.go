@@ -74,13 +74,7 @@ FROM users
 INNER JOIN refresh_tokens
 on users.user_id = refresh_tokens.user_id
 WHERE refresh_tokens.refresh_token = $1
-AND refresh_tokens.expiry = $2
 `
-
-type GetForTokenParams struct {
-	RefreshToken string    `json:"refresh_token"`
-	Expiry       time.Time `json:"expiry"`
-}
 
 type GetForTokenRow struct {
 	UserID            uuid.UUID    `json:"user_id"`
@@ -91,8 +85,8 @@ type GetForTokenRow struct {
 	PasswordChangedAt sql.NullTime `json:"password_changed_at"`
 }
 
-func (q *Queries) GetForToken(ctx context.Context, arg GetForTokenParams) (GetForTokenRow, error) {
-	row := q.queryRow(ctx, q.getForTokenStmt, getForToken, arg.RefreshToken, arg.Expiry)
+func (q *Queries) GetForToken(ctx context.Context, refreshToken string) (GetForTokenRow, error) {
+	row := q.queryRow(ctx, q.getForTokenStmt, getForToken, refreshToken)
 	var i GetForTokenRow
 	err := row.Scan(
 		&i.UserID,

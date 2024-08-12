@@ -30,7 +30,7 @@ type Querier interface {
 	GetAllHeroes(ctx context.Context) ([]Hero, error)
 	GetContactById(ctx context.Context, contactID uuid.UUID) (Contact, error)
 	GetConversationsByUser(ctx context.Context, userID uuid.NullUUID) ([]Conversation, error)
-	GetForToken(ctx context.Context, arg GetForTokenParams) (GetForTokenRow, error)
+	GetForToken(ctx context.Context, refreshToken string) (GetForTokenRow, error)
 	GetFormatById(ctx context.Context, formatID uuid.UUID) (Format, error)
 	GetGameByID(ctx context.Context, gameID uuid.UUID) (Game, error)
 	GetHeroById(ctx context.Context, heroID uuid.UUID) (Hero, error)

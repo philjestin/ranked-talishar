@@ -147,7 +147,7 @@ func (cc *UserController) LoginUser(ctx *gin.Context) {
 
 	expiry := time.Now().Add(time.Hour * 24)
 	refreshTokenArgs := &db.CreateRefreshTokenParams{
-		RefreshToken: tokens.RefreshToken,
+		RefreshToken: tokens.AccessToken,
 		UserID:       user.UserID,
 		Expiry:       expiry,
 	}
@@ -333,6 +333,6 @@ func (cc *UserController) DeleteUserById(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusNoContent, gin.H{"status": "successfuly deleted"})
+	ctx.JSON(http.StatusNoContent, gin.H{"status": "successfully deleted"})
 
 }
