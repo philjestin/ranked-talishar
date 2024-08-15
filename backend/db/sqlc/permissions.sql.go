@@ -9,20 +9,22 @@ import (
 	"context"
 
 	"github.com/google/uuid"
+	"github.com/lib/pq"
 )
 
 const addPermissionForUser = `-- name: AddPermissionForUser :exec
 INSERT INTO users_permissions (user_id, permission_id)
-SELECT $1, permissions.id FROM permissions where permissions.code = ANY($2)
+SELECT $1, permissions.id FROM permissions
+WHERE permissions.code = ANY($2::text[])
 `
 
 type AddPermissionForUserParams struct {
-	UserID uuid.UUID `json:"user_id"`
-	Code   string    `json:"code"`
+	UserID  uuid.UUID `json:"user_id"`
+	Column2 []string  `json:"column_2"`
 }
 
 func (q *Queries) AddPermissionForUser(ctx context.Context, arg AddPermissionForUserParams) error {
-	_, err := q.exec(ctx, q.addPermissionForUserStmt, addPermissionForUser, arg.UserID, arg.Code)
+	_, err := q.exec(ctx, q.addPermissionForUserStmt, addPermissionForUser, arg.UserID, pq.Array(arg.Column2))
 	return err
 }
 

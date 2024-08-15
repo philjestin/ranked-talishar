@@ -129,7 +129,7 @@ func (app *application) authenticate(next http.Handler) http.Handler {
 			CreatedAt: user.CreatedAt,
 			Name:      user.UserName,
 			Email:     user.UserEmail,
-			Password:  user.HashedPassword,
+			// Password:  string(user.HashedPassword),
 			Activated: user.Activated,
 			Version:   int(user.Version),
 		}

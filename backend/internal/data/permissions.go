@@ -35,13 +35,13 @@ func (m PermissionModel) GetAllForUser(userID uuid.UUID) (Permissions, error) {
 	return rows, nil
 }
 
-func (m PermissionModel) AddForUser(userID uuid.UUID, codes string) error {
+func (m PermissionModel) AddForUser(userID uuid.UUID, codes ...string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
 	args := &db.AddPermissionForUserParams{
-		UserID: userID,
-		Code:   codes,
+		UserID:  userID,
+		Column2: codes,
 	}
 
 	err := m.DB.AddPermissionForUser(ctx, *args)

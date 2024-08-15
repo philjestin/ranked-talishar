@@ -17,6 +17,7 @@ import (
 	_ "github.com/lib/pq"
 	dbCon "github.com/philjestin/ranked-talishar/db/sqlc"
 	"github.com/philjestin/ranked-talishar/internal/data"
+	"github.com/philjestin/ranked-talishar/internal/mailer"
 	"github.com/philjestin/ranked-talishar/internal/vcs"
 	"github.com/philjestin/ranked-talishar/listener"
 )
@@ -35,6 +36,13 @@ type appConfig struct {
 		rps     float64
 		burst   int
 	}
+	smtp struct {
+		host     string
+		port     int
+		username string
+		password string
+		sender   string
+	}
 
 	cors struct {
 		trustedOrigins []string
@@ -46,6 +54,7 @@ type application struct {
 	logger *slog.Logger
 	wg     sync.WaitGroup
 	models data.Models
+	mailer mailer.Mailer
 }
 
 var (
@@ -67,6 +76,12 @@ func main() {
 	flag.BoolVar(&cfg.limiter.enabled, "limiter-enabled", true, "Enable rate limiter")
 	flag.Float64Var(&cfg.limiter.rps, "limiter-rps", 2, "Rate limiter maximum requests per second")
 	flag.IntVar(&cfg.limiter.burst, "limiter-burst", 4, "Rate limiter maximum burst")
+
+	flag.StringVar(&cfg.smtp.host, "smtp-host", "sandbox.smtp.mailtrap.io", "SMTP host")
+	flag.IntVar(&cfg.smtp.port, "smtp-port", 25, "SMTP port")
+	flag.StringVar(&cfg.smtp.username, "smtp-username", "a7420fc0883489", "SMTP username")
+	flag.StringVar(&cfg.smtp.password, "smtp-password", "e75ffd0a3aa5ec", "SMTP password")
+	flag.StringVar(&cfg.smtp.sender, "smtp-sender", "Greenlight <no-reply@github.com/philjestin/ranked-talishar-pro>", "SMTP sender")
 
 	flag.Func("cors-trusted-origins", "Trusted CORS origins (space separated)", func(val string) error {
 		cfg.cors.trustedOrigins = strings.Fields(val)
@@ -123,6 +138,7 @@ func main() {
 		config: cfg,
 		logger: logger,
 		models: data.NewModels(db),
+		mailer: mailer.New(cfg.smtp.host, cfg.smtp.port, cfg.smtp.username, cfg.smtp.password, cfg.smtp.sender),
 	}
 
 	err = app.serve()

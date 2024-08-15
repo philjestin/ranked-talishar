@@ -8,6 +8,8 @@ import (
 
 	"github.com/google/uuid"
 	db "github.com/philjestin/ranked-talishar/db/sqlc"
+	"github.com/philjestin/ranked-talishar/internal/validator"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type UserModel struct {
@@ -20,40 +22,84 @@ var (
 
 var AnonymousUser = &User{}
 
-// type password struct {
-// 	plaintext *string
-// 	hash      []byte
-// }
-
 type User struct {
 	ID        uuid.UUID `json:"id"`
 	CreatedAt time.Time `json:"created_at"`
 	Name      string    `json:"name"`
 	Email     string    `json:"email"`
-	Password  string    `json:"-"`
+	Password  password  `json:"-"`
 	Activated bool      `json:"activated"`
 	Version   int       `json:"-"`
+}
+
+type password struct {
+	plaintext *string
+	hash      []byte
+}
+
+func (p *password) Set(plaintextPassword string) error {
+	hash, err := bcrypt.GenerateFromPassword([]byte(plaintextPassword), 12)
+	if err != nil {
+		return err
+	}
+
+	p.plaintext = &plaintextPassword
+	p.hash = hash
+
+	return nil
+}
+
+func ValidateEmail(v *validator.Validator, email string) {
+	v.Check(email != "", "email", "must be provided")
+	v.Check(validator.Matches(email, validator.EmailRX), "email", "must be a valid email address")
+}
+
+func ValidatePasswordPlaintext(v *validator.Validator, password string) {
+	v.Check(password != "", "password", "must be provided")
+	v.Check(len(password) >= 8, "password", "must be at least 8 bytes long")
+	v.Check(len(password) <= 72, "password", "must not be more than 72 bytes long")
+}
+
+func ValidateUser(v *validator.Validator, user *User) {
+	v.Check(user.Name != "", "name", "must be provided")
+	v.Check(len(user.Name) <= 500, "name", "must not be more than 500 bytes long")
+
+	ValidateEmail(v, user.Email)
+
+	if user.Password.plaintext != nil {
+		ValidatePasswordPlaintext(v, *user.Password.plaintext)
+	}
+
+	if user.Password.hash == nil {
+		panic("missing password hash for user")
+	}
 }
 
 func (u *User) IsAnonymous() bool {
 	return u == AnonymousUser
 }
 
-func (m UserModel) Insert(user db.User) error {
+func (m UserModel) Insert(user *User) error {
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
 	now := time.Now()
 	args := &db.CreateUserParams{
-		UserName:       user.UserName,
-		UserEmail:      user.UserEmail,
+		UserName:       user.Name,
+		UserEmail:      user.Email,
 		CreatedAt:      now,
 		UpdatedAt:      now,
-		HashedPassword: user.HashedPassword,
+		HashedPassword: string(user.Password.hash),
 	}
 
-	_, err := m.DB.CreateUser(ctx, *args)
+	dbUser, err := m.DB.CreateUser(ctx, *args)
+
+	// Add the values to the user model
+	user.ID = dbUser.UserID
+	user.Version = int(dbUser.Version)
+	user.CreatedAt = dbUser.CreatedAt
+
 	if err != nil {
 		return err
 	}

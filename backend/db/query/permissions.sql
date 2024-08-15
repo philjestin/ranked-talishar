@@ -7,4 +7,5 @@ WHERE users.user_id = $1;
 
 -- name: AddPermissionForUser :exec
 INSERT INTO users_permissions (user_id, permission_id)
-SELECT $1, permissions.id FROM permissions where permissions.code = ANY($2);
+SELECT $1, permissions.id FROM permissions
+WHERE permissions.code = ANY($2::text[]);
