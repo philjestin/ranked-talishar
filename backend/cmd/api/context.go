@@ -1,7 +1,9 @@
 package main
 
 import (
-	"github.com/gin-gonic/gin"
+	"context"
+	"net/http"
+
 	"github.com/philjestin/ranked-talishar/internal/data"
 )
 
@@ -9,13 +11,13 @@ type contextKey string
 
 const userContextKey = contextKey("user")
 
-func ContextSetUser(ctx *gin.Context, user *data.User) {
-	ctx.Set(string(userContextKey), user)
+func (app *application) contextSetUser(r *http.Request, user *data.User) *http.Request {
+	ctx := context.WithValue(r.Context(), userContextKey, user)
+	return r.WithContext(ctx)
 }
 
-func ContextGetUser(ctx *gin.Context) *data.User {
-	user, ok := ctx.Value(userContextKey).(*data.User)
-
+func (app *application) contextGetUser(r *http.Request) *data.User {
+	user, ok := r.Context().Value(userContextKey).(*data.User)
 	if !ok {
 		panic("missing user value in request context")
 	}

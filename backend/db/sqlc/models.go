@@ -86,6 +86,11 @@ type Participant struct {
 	JoinedAt       sql.NullTime  `json:"joined_at"`
 }
 
+type Permission struct {
+	ID   int64  `json:"id"`
+	Code string `json:"code"`
+}
+
 type Ranking struct {
 	RankingID   uuid.UUID     `json:"ranking_id"`
 	UserID      uuid.NullUUID `json:"user_id"`
@@ -102,6 +107,13 @@ type RefreshToken struct {
 	Expiry       time.Time `json:"expiry"`
 }
 
+type Token struct {
+	Hash   []byte    `json:"hash"`
+	UserID uuid.UUID `json:"user_id"`
+	Expiry time.Time `json:"expiry"`
+	Scope  string    `json:"scope"`
+}
+
 type User struct {
 	UserID            uuid.UUID    `json:"user_id"`
 	UserName          string       `json:"user_name"`
@@ -114,4 +126,11 @@ type User struct {
 	Elo               int32        `json:"elo"`
 	HashedPassword    string       `json:"hashed_password"`
 	PasswordChangedAt sql.NullTime `json:"password_changed_at"`
+	Activated         bool         `json:"activated"`
+	Version           int32        `json:"version"`
+}
+
+type UsersPermission struct {
+	UserID       uuid.UUID `json:"user_id"`
+	PermissionID int64     `json:"permission_id"`
 }
