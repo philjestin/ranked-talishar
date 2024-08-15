@@ -13,6 +13,7 @@ import (
 
 type Querier interface {
 	AddParticipant(ctx context.Context, arg AddParticipantParams) error
+	AddPermissionForUser(ctx context.Context, arg AddPermissionForUserParams) error
 	CreateContact(ctx context.Context, arg CreateContactParams) (Contact, error)
 	CreateConversation(ctx context.Context) (CreateConversationRow, error)
 	CreateFormat(ctx context.Context, arg CreateFormatParams) (Format, error)
@@ -20,7 +21,9 @@ type Querier interface {
 	CreateHero(ctx context.Context, arg CreateHeroParams) (Hero, error)
 	CreateMatch(ctx context.Context, arg CreateMatchParams) (Match, error)
 	CreateRefreshToken(ctx context.Context, arg CreateRefreshTokenParams) (RefreshToken, error)
+	CreateToken(ctx context.Context, arg CreateTokenParams) error
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
+	DeleteAllTokensForUser(ctx context.Context, arg DeleteAllTokensForUserParams) error
 	DeleteContact(ctx context.Context, contactID uuid.UUID) error
 	DeleteFormat(ctx context.Context, formatID uuid.UUID) error
 	DeleteGame(ctx context.Context, gameID uuid.UUID) error
@@ -28,6 +31,7 @@ type Querier interface {
 	DeleteMatch(ctx context.Context, matchID uuid.UUID) error
 	DeleteUser(ctx context.Context, userID uuid.UUID) error
 	GetAllHeroes(ctx context.Context) ([]Hero, error)
+	GetAllPermissionsForUser(ctx context.Context, userID uuid.UUID) ([]string, error)
 	GetContactById(ctx context.Context, contactID uuid.UUID) (Contact, error)
 	GetConversationsByUser(ctx context.Context, userID uuid.NullUUID) ([]Conversation, error)
 	GetForToken(ctx context.Context, arg GetForTokenParams) (GetForTokenRow, error)

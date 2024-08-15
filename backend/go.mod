@@ -8,10 +8,13 @@ require (
 	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/google/uuid v1.6.0
 	github.com/gorilla/websocket v1.5.3
+	github.com/julienschmidt/httprouter v1.3.0
 	github.com/lib/pq v1.10.9
 	github.com/spf13/viper v1.19.0
 	github.com/stretchr/testify v1.9.0
+	github.com/tomasen/realip v0.0.0-20180522021738-f0c99a92ddce
 	golang.org/x/crypto v0.23.0
+	golang.org/x/time v0.5.0
 )
 
 require (

@@ -27,6 +27,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.addParticipantStmt, err = db.PrepareContext(ctx, addParticipant); err != nil {
 		return nil, fmt.Errorf("error preparing query AddParticipant: %w", err)
 	}
+	if q.addPermissionForUserStmt, err = db.PrepareContext(ctx, addPermissionForUser); err != nil {
+		return nil, fmt.Errorf("error preparing query AddPermissionForUser: %w", err)
+	}
 	if q.createContactStmt, err = db.PrepareContext(ctx, createContact); err != nil {
 		return nil, fmt.Errorf("error preparing query CreateContact: %w", err)
 	}
@@ -48,8 +51,14 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.createRefreshTokenStmt, err = db.PrepareContext(ctx, createRefreshToken); err != nil {
 		return nil, fmt.Errorf("error preparing query CreateRefreshToken: %w", err)
 	}
+	if q.createTokenStmt, err = db.PrepareContext(ctx, createToken); err != nil {
+		return nil, fmt.Errorf("error preparing query CreateToken: %w", err)
+	}
 	if q.createUserStmt, err = db.PrepareContext(ctx, createUser); err != nil {
 		return nil, fmt.Errorf("error preparing query CreateUser: %w", err)
+	}
+	if q.deleteAllTokensForUserStmt, err = db.PrepareContext(ctx, deleteAllTokensForUser); err != nil {
+		return nil, fmt.Errorf("error preparing query DeleteAllTokensForUser: %w", err)
 	}
 	if q.deleteContactStmt, err = db.PrepareContext(ctx, deleteContact); err != nil {
 		return nil, fmt.Errorf("error preparing query DeleteContact: %w", err)
@@ -71,6 +80,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	}
 	if q.getAllHeroesStmt, err = db.PrepareContext(ctx, getAllHeroes); err != nil {
 		return nil, fmt.Errorf("error preparing query GetAllHeroes: %w", err)
+	}
+	if q.getAllPermissionsForUserStmt, err = db.PrepareContext(ctx, getAllPermissionsForUser); err != nil {
+		return nil, fmt.Errorf("error preparing query GetAllPermissionsForUser: %w", err)
 	}
 	if q.getContactByIdStmt, err = db.PrepareContext(ctx, getContactById); err != nil {
 		return nil, fmt.Errorf("error preparing query GetContactById: %w", err)
@@ -172,6 +184,11 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing addParticipantStmt: %w", cerr)
 		}
 	}
+	if q.addPermissionForUserStmt != nil {
+		if cerr := q.addPermissionForUserStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing addPermissionForUserStmt: %w", cerr)
+		}
+	}
 	if q.createContactStmt != nil {
 		if cerr := q.createContactStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing createContactStmt: %w", cerr)
@@ -207,9 +224,19 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing createRefreshTokenStmt: %w", cerr)
 		}
 	}
+	if q.createTokenStmt != nil {
+		if cerr := q.createTokenStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing createTokenStmt: %w", cerr)
+		}
+	}
 	if q.createUserStmt != nil {
 		if cerr := q.createUserStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing createUserStmt: %w", cerr)
+		}
+	}
+	if q.deleteAllTokensForUserStmt != nil {
+		if cerr := q.deleteAllTokensForUserStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing deleteAllTokensForUserStmt: %w", cerr)
 		}
 	}
 	if q.deleteContactStmt != nil {
@@ -245,6 +272,11 @@ func (q *Queries) Close() error {
 	if q.getAllHeroesStmt != nil {
 		if cerr := q.getAllHeroesStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing getAllHeroesStmt: %w", cerr)
+		}
+	}
+	if q.getAllPermissionsForUserStmt != nil {
+		if cerr := q.getAllPermissionsForUserStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getAllPermissionsForUserStmt: %w", cerr)
 		}
 	}
 	if q.getContactByIdStmt != nil {
@@ -437,6 +469,7 @@ type Queries struct {
 	db                            DBTX
 	tx                            *sql.Tx
 	addParticipantStmt            *sql.Stmt
+	addPermissionForUserStmt      *sql.Stmt
 	createContactStmt             *sql.Stmt
 	createConversationStmt        *sql.Stmt
 	createFormatStmt              *sql.Stmt
@@ -444,7 +477,9 @@ type Queries struct {
 	createHeroStmt                *sql.Stmt
 	createMatchStmt               *sql.Stmt
 	createRefreshTokenStmt        *sql.Stmt
+	createTokenStmt               *sql.Stmt
 	createUserStmt                *sql.Stmt
+	deleteAllTokensForUserStmt    *sql.Stmt
 	deleteContactStmt             *sql.Stmt
 	deleteFormatStmt              *sql.Stmt
 	deleteGameStmt                *sql.Stmt
@@ -452,6 +487,7 @@ type Queries struct {
 	deleteMatchStmt               *sql.Stmt
 	deleteUserStmt                *sql.Stmt
 	getAllHeroesStmt              *sql.Stmt
+	getAllPermissionsForUserStmt  *sql.Stmt
 	getContactByIdStmt            *sql.Stmt
 	getConversationsByUserStmt    *sql.Stmt
 	getForTokenStmt               *sql.Stmt
@@ -489,6 +525,7 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		db:                            tx,
 		tx:                            tx,
 		addParticipantStmt:            q.addParticipantStmt,
+		addPermissionForUserStmt:      q.addPermissionForUserStmt,
 		createContactStmt:             q.createContactStmt,
 		createConversationStmt:        q.createConversationStmt,
 		createFormatStmt:              q.createFormatStmt,
@@ -496,7 +533,9 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		createHeroStmt:                q.createHeroStmt,
 		createMatchStmt:               q.createMatchStmt,
 		createRefreshTokenStmt:        q.createRefreshTokenStmt,
+		createTokenStmt:               q.createTokenStmt,
 		createUserStmt:                q.createUserStmt,
+		deleteAllTokensForUserStmt:    q.deleteAllTokensForUserStmt,
 		deleteContactStmt:             q.deleteContactStmt,
 		deleteFormatStmt:              q.deleteFormatStmt,
 		deleteGameStmt:                q.deleteGameStmt,
@@ -504,6 +543,7 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		deleteMatchStmt:               q.deleteMatchStmt,
 		deleteUserStmt:                q.deleteUserStmt,
 		getAllHeroesStmt:              q.getAllHeroesStmt,
+		getAllPermissionsForUserStmt:  q.getAllPermissionsForUserStmt,
 		getContactByIdStmt:            q.getContactByIdStmt,
 		getConversationsByUserStmt:    q.getConversationsByUserStmt,
 		getForTokenStmt:               q.getForTokenStmt,

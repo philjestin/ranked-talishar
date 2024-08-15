@@ -22,7 +22,7 @@ INSERT INTO users(
     hashed_password
 ) VALUES (
     $1, $2, $3, $4, $5
-) RETURNING user_id, user_name, user_email, created_at, updated_at, wins, losses, ties, elo, hashed_password, password_changed_at
+) RETURNING user_id, user_name, user_email, created_at, updated_at, wins, losses, ties, elo, hashed_password, password_changed_at, activated, version
 `
 
 type CreateUserParams struct {
@@ -54,6 +54,8 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		&i.Elo,
 		&i.HashedPassword,
 		&i.PasswordChangedAt,
+		&i.Activated,
+		&i.Version,
 	)
 	return i, err
 }
@@ -69,7 +71,7 @@ func (q *Queries) DeleteUser(ctx context.Context, userID uuid.UUID) error {
 }
 
 const getForToken = `-- name: GetForToken :one
-select users.user_id, users.created_at, users.user_email, users.user_name, users.hashed_password, users.password_changed_at
+select users.user_id, users.created_at, users.user_email, users.user_name, users.hashed_password, users.password_changed_at, users.activated, users.version
 FROM users
 INNER JOIN refresh_tokens
 on users.user_id = refresh_tokens.user_id
@@ -89,6 +91,8 @@ type GetForTokenRow struct {
 	UserName          string       `json:"user_name"`
 	HashedPassword    string       `json:"hashed_password"`
 	PasswordChangedAt sql.NullTime `json:"password_changed_at"`
+	Activated         bool         `json:"activated"`
+	Version           int32        `json:"version"`
 }
 
 func (q *Queries) GetForToken(ctx context.Context, arg GetForTokenParams) (GetForTokenRow, error) {
@@ -101,12 +105,14 @@ func (q *Queries) GetForToken(ctx context.Context, arg GetForTokenParams) (GetFo
 		&i.UserName,
 		&i.HashedPassword,
 		&i.PasswordChangedAt,
+		&i.Activated,
+		&i.Version,
 	)
 	return i, err
 }
 
 const getUser = `-- name: GetUser :one
-SELECT user_id, user_name, user_email, created_at, updated_at, wins, losses, ties, elo, hashed_password, password_changed_at FROM users
+SELECT user_id, user_name, user_email, created_at, updated_at, wins, losses, ties, elo, hashed_password, password_changed_at, activated, version FROM users
 WHERE user_name = $1
 LIMIT 1
 `
@@ -126,12 +132,14 @@ func (q *Queries) GetUser(ctx context.Context, userName string) (User, error) {
 		&i.Elo,
 		&i.HashedPassword,
 		&i.PasswordChangedAt,
+		&i.Activated,
+		&i.Version,
 	)
 	return i, err
 }
 
 const getUserById = `-- name: GetUserById :one
-SELECT user_id, user_name, user_email, created_at, updated_at, wins, losses, ties, elo, hashed_password, password_changed_at FROM users
+SELECT user_id, user_name, user_email, created_at, updated_at, wins, losses, ties, elo, hashed_password, password_changed_at, activated, version FROM users
 WHERE user_id = $1 LIMIT 1
 `
 
@@ -150,6 +158,8 @@ func (q *Queries) GetUserById(ctx context.Context, userID uuid.UUID) (User, erro
 		&i.Elo,
 		&i.HashedPassword,
 		&i.PasswordChangedAt,
+		&i.Activated,
+		&i.Version,
 	)
 	return i, err
 }
@@ -189,7 +199,7 @@ func (q *Queries) IncrementWins(ctx context.Context, arg IncrementWinsParams) er
 }
 
 const listUsers = `-- name: ListUsers :many
-SELECT user_id, user_name, user_email, created_at, updated_at, wins, losses, ties, elo, hashed_password, password_changed_at FROM users
+SELECT user_id, user_name, user_email, created_at, updated_at, wins, losses, ties, elo, hashed_password, password_changed_at, activated, version FROM users
 ORDER BY user_id
 LIMIT $1
 OFFSET $2
@@ -221,6 +231,8 @@ func (q *Queries) ListUsers(ctx context.Context, arg ListUsersParams) ([]User, e
 			&i.Elo,
 			&i.HashedPassword,
 			&i.PasswordChangedAt,
+			&i.Activated,
+			&i.Version,
 		); err != nil {
 			return nil, err
 		}
@@ -261,7 +273,7 @@ updated_at = coalesce($3, updated_at),
 hashed_password = COALESCE($4, hashed_password),
 password_changed_at = COALESCE($5, password_changed_at)
 WHERE user_id = $6
-RETURNING user_id, user_name, user_email, created_at, updated_at, wins, losses, ties, elo, hashed_password, password_changed_at
+RETURNING user_id, user_name, user_email, created_at, updated_at, wins, losses, ties, elo, hashed_password, password_changed_at, activated, version
 `
 
 type UpdateUserParams struct {
@@ -295,6 +307,8 @@ func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, e
 		&i.Elo,
 		&i.HashedPassword,
 		&i.PasswordChangedAt,
+		&i.Activated,
+		&i.Version,
 	)
 	return i, err
 }

@@ -58,7 +58,7 @@ WHERE user_name = $1
 LIMIT 1;
 
 -- name: GetForToken :one
-select users.user_id, users.created_at, users.user_email, users.user_name, users.hashed_password, users.password_changed_at
+select users.user_id, users.created_at, users.user_email, users.user_name, users.hashed_password, users.password_changed_at, users.activated, users.version
 FROM users
 INNER JOIN refresh_tokens
 on users.user_id = refresh_tokens.user_id
